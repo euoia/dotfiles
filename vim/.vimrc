@@ -1078,9 +1078,9 @@
     function! SafeSearchCommand(theCommand)
         let search = @/
         try
-                execute a:theCommand
+            execute a:theCommand
         catch /.*/
-                echo "No more."
+            echo "No more."
         endtry
 
         let @/ = search
