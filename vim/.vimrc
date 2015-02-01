@@ -33,10 +33,10 @@
     Plug 'Valloric/YouCompleteMe'
     Plug 'brookhong/DBGPavim'
     Plug 'euoia/toggle_maximize.vim'
-    Plug 'euoia/vim-jsbeautify-simple'
     Plug 'flazz/vim-colorschemes'
     Plug 'git@github.com:euoia/alignify.git'
     Plug 'git@github.com:euoia/copyblock.git'
+    Plug 'git@github.com:euoia/js-format.git'
     Plug 'git@github.com:euoia/vim-neosnippet-snippets.git'
     Plug 'groenewege/vim-less'
     Plug 'honza/vim-snippets'
@@ -418,11 +418,11 @@
         let g:dbgPavimPort = 9009
         let g:dbgPavimBreakAtEntry = 0
     " }}
-    " JsBeautifySimple {{
-        " JsBeautifySimple reformats JavaScript code.
-        autocmd FileType javascript let b:JsBeautifySimple_config = "~/.js-beautify.json"
-        autocmd FileType javascript nmap <silent> <buffer> <F1> :JsBeautifySimple<cr>
-        autocmd FileType javascript vmap <silent> <buffer> <F1> :JsBeautifySimple<cr>
+    " JsFormat {{
+        " JsFormat reformats JavaScript code.
+        autocmd FileType javascript let b:JsFormat_config = "~/.js-beautify.json"
+        autocmd FileType javascript nmap <silent> <buffer> <F1> :JsFormat<cr>
+        autocmd FileType javascript vmap <silent> <buffer> <F1> :JsFormat<cr>
     " }}
     " Fugitive {{
         " Fugitive provides lots of commands for working with git
@@ -718,18 +718,20 @@
 
                 " Disable AutoComplPop.
                 let g:acp_enableAtStartup = 0
+
                 " Use neocomplcache.
                 let g:neocomplcache_enable_at_startup = 1
+
                 " Use smartcase.
                 let g:neocomplcache_enable_smart_case = 1
+
                 " Set minimum syntax keyword length.
                 let g:neocomplcache_min_syntax_length = 3
                 let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
 
                 " Define dictionary.
                 let g:neocomplcache_dictionary_filetype_lists = {
-                    \ 'default' : '',
-                        \ }
+                    \ 'default' : ''}
 
                 " Define keyword.
                 if !exists('g:neocomplcache_keyword_patterns')
@@ -747,16 +749,17 @@
                     " For no inserting <CR> key.
                     return neocomplcache#smart_close_popup() . "\<CR>"
                 endfunction
+
                 " <CR>: close popup and save indent.
                 inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
 
                 " <TAB>: completion.
                 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+
                 " <C-h>, <BS>: close popup and delete backword char.
                 inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
                 inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
                 inoremap <expr><C-y>  neocomplcache#close_popup()
-                "inoremap <expr><C-e>  neocomplcache#cancel_popup()
                 inoremap <expr><C-e>  neocomplcache#close_popup()
 
                 " Enable heavy omni completion.
@@ -966,8 +969,8 @@
         " }}
 
         " A quick way to commit the current file after fixing the style.
-        autocmd FileType javascript vmap <silent> <buffer> <Leader>, :JsBeautifySimple<cr>
-        autocmd FileType javascript nmap <silent> <buffer> <Leader>, :JsBeautifySimple<cr>
+        autocmd FileType javascript vmap <silent> <buffer> <Leader>, :JsFormat<cr>
+        autocmd FileType javascript nmap <silent> <buffer> <Leader>, :JsFormat<cr>
         autocmd FileType javascript nmap <Leader>s :silent call CommitThis("style fixes")<cr>
 
         " Highlighting {{
