@@ -1086,14 +1086,6 @@
         let @/ = search
     endfunction
 
-    " Convert the current markdown file to HTML and open it in a web browser.
-    " Requires multimarkdown.
-    function! Markdown()
-        let tn=tempname()
-        execute "!multimarkdown " . expand('%') . " > " . tn . ".html"
-        execute "!open " . tn . ".html"
-    endfunction
-
     " Lookup words. Note that according to the following discussion, google's
     " I'm Feeling Lucky search does not always work unless the referrer is
     " google.com.
