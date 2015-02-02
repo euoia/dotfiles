@@ -627,7 +627,7 @@
 
         " Normal mode keyboard shortcuts.
         if has("gui_macvim")
-            nnoremap <silent> <D-p> :Unite -profile-name=default buffer file_mru file_rec/async<cr>
+            nnoremap <silent> <D-p> :Unite -profile-name=default buffer file_rec/async file_mru<cr>
         endif
 
         nmap <Leader>b :Unite -buffer-name=buffer -resume buffer<cr>
