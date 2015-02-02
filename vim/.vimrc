@@ -554,6 +554,10 @@
         " Language specifics {{
             " Just functions, classes and constants. No variables.
             let tlist_php_settings = 'php;c:class;d:constant;f:function'
+
+            " Tags for JavaScript. Requires custom .ctags. See
+			" http://stackoverflow.com/questions/1790623/how-can-i-make-vims-taglist-plugin-show-useful-information-for-javascript
+            let tlist_javascript_settings = 'javascript;r:var;s:string;a:array;o:object;u:function'
         " }}
 
         " Use a status line that includes TagList current tag.
