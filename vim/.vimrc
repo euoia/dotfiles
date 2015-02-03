@@ -574,7 +574,7 @@
     " UltiSnippets {{
         " UltiSnips provides snippet completions. You can define snippets with
         " placeholders that you can tab through.
-        let g:UltiSnipsSnippetsDir = "~/.vim/plugged/vim-snippets/MyUltiSnips"
+        let g:UltiSnipsSnippetsDir = "~/.vim/plugged/vim-neosnippet-snippets/MyUltiSnips"
         let g:UltiSnipsExpandTrigger = "<tab>"
         let g:UltiSnipsJumpForwardTrigger="<tab>"
         let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
@@ -634,6 +634,7 @@
             nnoremap <silent> <D-p> :Unite -profile-name=default buffer file_rec/async file_mru<cr>
         endif
 
+        nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
         nmap <Leader>b :Unite -buffer-name=buffer -resume buffer<cr>
 
         " Tags (functions) in tags file.
@@ -1242,6 +1243,11 @@
 " tmux/iterm integration {{
     " Set window title in tmux.
     autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window 'vim:".expand("%")."'")
+
+    nnoremap <Leader>K :silent aboveleft new<cr>
+    nnoremap <Leader>J :silent belowright new<cr>
+    nnoremap <Leader>H :silent leftabove vnew<cr>
+    nnoremap <Leader>L :silent rightbelow vnew<cr>
 " }}
 
 " TODOs {{
