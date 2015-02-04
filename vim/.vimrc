@@ -635,7 +635,7 @@
         endif
 
         nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
-        nmap <Leader>b :Unite -buffer-name=buffer -resume buffer<cr>
+        nmap <Leader>b :Unite buffer<cr>
 
         " Tags (functions) in tags file.
         nmap <Leader>T :Unite -buffer-name=tag -resume tag<cr>
