@@ -644,7 +644,7 @@
         nmap <Leader>t :Unite outline<cr>
 
         " Files in current directory (recursive).
-        nmap <Leader>. :UniteWithCurrentDir file_rec/async<cr>
+        nmap <Leader>. :UniteWithCurrentDir file_rec<cr>
 
         " Most recently used files.
         nmap <leader>m :Unite file_mru<cr>
@@ -1169,15 +1169,22 @@
         " character.
         au FileType tcl match BadTab /\(^\t*\)\@<=[ ]\+\s\+/
 
-        " Never leave trailing whitespace on the current line.
-        " Need to do this for every filetype
-        function! RemoveTrailingWhitespace()
-            if &ft != 'markdown'
-                silent! s/\s\+$/
-            endif
-        endfunction
+        " Never leave trailing whitespace on the current line {{
+            " Disabled because it prevents UltiSnips from inserting
+            " placeholders with leading whitespace. Highlighting the trailing
+            " whitespace ought to be enough.
+            if 0
+                function! RemoveTrailingWhitespace()
+                    if &ft != 'markdown'
+                        let l:winview = winsaveview()
+                        silent! s/\s\+$/
+                        call winrestview(l:winview)
+                    endif
+                endfunction
 
-        autocmd InsertLeave * call RemoveTrailingWhitespace()
+                autocmd InsertLeave * call RemoveTrailingWhitespace()
+            endif
+        " }}
     " }}
 " }}
 
