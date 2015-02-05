@@ -1252,14 +1252,36 @@
 		execute "normal o
 			\Yii::log(sprintf('DEBUG " . expand("<cword>") . " = %s',
 			\ print_r(" . expand("<cword>") . ", true)),
-			\ 'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
+			\\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
 
 		" Restore keyword setting.
 		let &iskeyword = l:keyword
 	endfunction
 
-	autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
+    " Function which returns the current visual selection, from:
+    " http://stackoverflow.com/questions/1533565/how-to-get-visually-selected-text-in-vimscript
+    function! GetVisualSelection()
+        " Why is this not a built-in Vim script function?!
+        let [lnum1, col1] = getpos("'<")[1:2]
+        let [lnum2, col2] = getpos("'>")[1:2]
+        let lines = getline(lnum1, lnum2)
+        let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
+        let lines[0] = lines[0][col1 - 1:]
+        return join(lines, "\n")
+    endfunction
 
+	" Use Web-Store style logging for whatever symbol is under the cursor.
+	function! LogSelectedText()
+        let selectedText = GetVisualSelection()
+
+		execute "normal o
+			\Yii::log(sprintf('DEBUG " . selectedText. " = %s',
+			\print_r(" . selectedText . ", true)),
+			\\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
+	endfunction
+
+	autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
+	autocmd FileType php vmap <Leader>v :call LogSelectedText()<cr>
 
     " Switch to a sensible default directory.
     cd /Volumes/dev/copper
