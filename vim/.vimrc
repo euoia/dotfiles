@@ -1226,7 +1226,7 @@
 
     " A simplistic way of fixing a few of the most common phpcs errors. The
     " phpcbf program can generally do a better job than this.
-    func! FixPHPCSErrors() range
+    function! FixPHPCSErrors() range
         let saved_view = winsaveview()
         silent! execute a:firstline . "," . a:lastline . 's/\([^[:space:]=]\)=/\1 ='
         silent! execute a:firstline . "," . a:lastline . 's/=>\(\S\)/=> \1'
@@ -1242,6 +1242,24 @@
         " Fix current line
         autocmd FileType php nmap <D-r> :call FixPHPCSErrors()<cr>
     endif
+
+	" Use Web-Store style logging for whatever symbol is under the cursor.
+	function! LogWordUnderCursor()
+		" We need to include the dollar symbol in <cword>.
+		let l:keyword = &iskeyword
+		set iskeyword+=$
+
+		execute "normal o
+			\Yii::log(sprintf('DEBUG " . expand("<cword>") . " = %s',
+			\ print_r(" . expand("<cword>") . ", true)),
+			\ 'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
+
+		" Restore keyword setting.
+		let &iskeyword = l:keyword
+	endfunction
+
+	autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
+
 
     " Switch to a sensible default directory.
     cd /Volumes/dev/copper
