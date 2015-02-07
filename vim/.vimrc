@@ -335,6 +335,11 @@
     " 'r' flag.
     set formatoptions=rq
 
+    " Vim's help doesn't explain this clearly, but without the 'w' flag
+    " formatting comments using 'gq' will indent the block a further level
+    " since it treats it as what it calls a "paragraph".
+    set formatoptions+=w
+
     " Whether to be case-sensitive in searches.
     set ignorecase
 
@@ -565,6 +570,8 @@
         set statusline=%f%m%r\ %{Tlist_Get_Tagname_By_Line()}\ [%p%%\ %Ll]%=%<%(%)%{substitute(getcwd(),$HOME,'~','')}
 
         nnoremap <silent> <F4> :TlistToggle<cr>
+
+        autocmd BufRead * TlistUpdate
     " }}
     " toggle_maximize {{
         " toggle_maximize provides a command to toggle between having the
@@ -596,7 +603,6 @@
 
         " Define a "default" profile.
         call unite#custom#profile('default', 'context', {
-            \ 'resume': 1,
             \ 'buffer_name': 'default',
             \ 'input': '',
             \ 'start_insert': 1,
@@ -631,7 +637,11 @@
 
         " Normal mode keyboard shortcuts.
         if has("gui_macvim")
-            nnoremap <silent> <D-p> :Unite -profile-name=default buffer file_rec/async file_mru<cr>
+            " default: resume
+            nnoremap <silent> <D-p> :Unite -resume -profile-name=default buffer file_rec/async file_mru<cr>
+
+            " with shift: do not resume
+            nnoremap <silent> <D-P> :Unite -profile-name=default buffer file_rec/async file_mru<cr>
         endif
 
         nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
