@@ -333,7 +333,7 @@
     " String of single-character flags controlling the behaviour of vim's
     " formatting. Vim can automatically insert comment leaders with the
     " 'r' flag.
-    set formatoptions=rq
+    set formatoptions=tcqr
 
     " Vim's help doesn't explain this clearly, but without the 'w' flag
     " formatting comments using 'gq' will indent the block a further level
@@ -897,6 +897,10 @@
     augroup filetypedetect
         au BufNewFile,BufRead .tmux.conf*,tmux.conf* setf tmux
     augroup END
+
+    augroup filetypedetect
+        au BufNewFile,BufRead *.org setf org
+    augroup END
 " }}
 
 " Filetype auto commands {{
@@ -1046,6 +1050,11 @@
             autocmd FileType cpp setlocal tabstop=2
             autocmd FileType cpp setlocal softtabstop=2
         " }}
+    " }}
+    " org {{
+        " Treat lines starting with asterisk as a bullet list (instead of a
+        " multi line comment).
+        autocmd FileType org setlocal comments=s1:/*,fb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
     " }}
 " }}
 
