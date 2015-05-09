@@ -55,6 +55,7 @@
     Plug 'vim-scripts/mru.vim'
     Plug 'vim-scripts/sessionman.vim'
     Plug 'vim-scripts/taglist.vim'
+    Plug 'kchmck/vim-coffee-script'
     call plug#end()
 " }}
 
@@ -338,7 +339,10 @@
     " Vim's help doesn't explain this clearly, but without the 'w' flag
     " formatting comments using 'gq' will indent the block a further level
     " since it treats it as what it calls a "paragraph".
-    set formatoptions+=w
+    "
+    " Disabled this because it leaves whitespace at the end of each line. I
+    " haven't found a good solution.
+    " set formatoptions+=w
 
     " Whether to be case-sensitive in searches.
     set ignorecase
@@ -490,6 +494,8 @@
         endfunction
 
         autocmd BufEnter * call CheckNERDTree()
+
+        let NERDTreeIgnore += ['\.pyc$']
     " }}
     " Syntastic {{
         " Syntastic provides hooks for many static syntax checkers. It
@@ -655,6 +661,9 @@
 
         " Files in current directory (recursive).
         nmap <Leader>. :UniteWithCurrentDir file_rec<cr>
+
+        " Files in directory of current buffer (recursive).
+        nmap <Leader>e :UniteWithBufferDir file_rec<cr>
 
         " Most recently used files.
         nmap <leader>m :Unite file_mru<cr>
@@ -890,6 +899,9 @@
     " From http://learnvimscriptthehardway.stevelosh.com/chapters/10.html
     inoremap jk <esc>
     inoremap <esc> <nop>
+
+    " Use normal mode backspace to toggle between buffers.
+    nmap <BS> 
 " }}
 
 " Additional file types {{
@@ -904,6 +916,12 @@
 " }}
 
 " Filetype auto commands {{
+    " Coffeescript {{
+        autocmd FileType coffee setlocal shiftwidth=2
+        autocmd FileType coffee setlocal softtabstop=2
+        autocmd FileType coffee setlocal tabstop=2
+        autocmd FileType coffee setlocal expandtab
+    " }}
     " Ruby {{
         " ruby standard 2 spaces, always
         autocmd BufRead,BufNewFile *.rb,*.rhtml setlocal shiftwidth=2
@@ -1000,6 +1018,15 @@
             hi link jsLabel Special
         " }}
     " }}
+    " JSON {{
+        " npm package.json defaults.
+        au FileType json setlocal expandtab
+        au FileType json setlocal list
+        au FileType json setlocal softtabstop=2
+        au FileType json setlocal shiftwidth=2
+        au FileType json setlocal tabstop=2
+
+    " }}
     " Less {{
         au FileType less setlocal noexpandtab
         au FileType less setlocal softtabstop=4
@@ -1052,6 +1079,11 @@
         " }}
     " }}
     " org {{
+        " Treat lines starting with asterisk as a bullet list (instead of a
+        " multi line comment).
+        autocmd FileType org setlocal comments=s1:/*,fb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
+    " }}
+    " gitcommit {{
         " Treat lines starting with asterisk as a bullet list (instead of a
         " multi line comment).
         autocmd FileType org setlocal comments=s1:/*,fb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
