@@ -39,7 +39,6 @@
     Plug 'git@github.com:euoia/js-format.git'
     Plug 'git@github.com:euoia/vim-neosnippet-snippets.git'
     Plug 'groenewege/vim-less'
-    Plug 'honza/vim-snippets'
     Plug 'marijnh/tern_for_vim'
     Plug 'mustache/vim-mustache-handlebars'
     Plug 'pangloss/vim-javascript'
@@ -56,12 +55,17 @@
     Plug 'vim-scripts/sessionman.vim'
     Plug 'vim-scripts/taglist.vim'
     Plug 'kchmck/vim-coffee-script'
+    Plug 'fatih/vim-go'
     call plug#end()
+
+    " Disabling this for now. Many of the JavaScript snippets are annoying.
+    " TODO go through and copy useful ones.
+    " Plug 'honza/vim-snippets'
 " }}
 
 " Basics {{
-    " A note on using Vim's help: to read more about any lines which say `set
-    " something` type :h 'something' including the single quotes. For example,
+	" A note on using Vim's help: to read more about any lines which say `set
+	" something` type :h 'something' including the single quotes. For example,
     " :help 'nocompatible'.
 
     " Set the colorscheme. This may be overridden in ~/.gvimrc for GUI vims.
@@ -490,8 +494,12 @@
                     :bd
                 endif
             endif
-
         endfunction
+
+        if has("gui_macvim")
+            nnoremap <silent> <D-M> :NERDTreeMirror<cr>
+            nnoremap <silent> <D-N> :NERDTreeToggle<cr>
+        endif
 
         autocmd BufEnter * call CheckNERDTree()
 
@@ -1001,6 +1009,9 @@
         autocmd FileType javascript setlocal makeprg=cat\ log/lasterror.txt
         autocmd FileType javascript setlocal errorformat=\ \ \ \ at\ %m\ (%f:%l:%c)
 
+        " Format as paragraph regardless of trailing whitespace.
+        autocmd FileType php setlocal formatoptions-=w
+
         " Game making {{
             autocmd FileType javascript nmap <leader>w :s/width/\=KeepCase(submatch(0), 'height')
         " }}
@@ -1240,102 +1251,91 @@
 " }}
 
 " Settings for Lightspeed Web Store {{
-    " Plugins {{
-        " CtrlP {{
-            " CtrlP is disabled.
-            if 0
-                " For CtrlP plugin: ignore files in the assets directory.
-                let g:ctrlp_custom_ignore = {
-                    \ 'file':  '\vassets/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]?',
-                    \ }
-
-                " Ignore .gitignore files, from https://github.com/kien/ctrlp.vim/issues/174
-                let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
-            endif
+    " Controlled by environment variable.
+    if $LIGHTSPEED
+        " Plugins {{
+            " NERDTree {{
+                if has("gui_macvim")
+                    nnoremap <silent> <D-N> :NERDTreeToggle copper<cr>
+                endif
+            " }}
         " }}
 
-        " NERDTree {{
-            if has("gui_macvim")
-                nnoremap <silent> <D-N> :NERDTreeToggle copper<cr>
-                nnoremap <silent> <D-M> :NERDTreeMirro<cr>
-            endif
+        " File types {{
+            " Use tabs instead of spaces.
+            au FileType javascript setlocal noexpandtab
+
+            " Don't show tabs.
+            au FileType javascript setlocal nolist
+
+            " Indent width.
+            au FileType javascript setlocal softtabstop=4
+            au FileType javascript setlocal shiftwidth=4
+            au FileType javascript setlocal tabstop=4
         " }}
-    " }}
 
-    " File types {{
-        " Use tabs instead of spaces.
-        au FileType javascript setlocal noexpandtab
+        " A simplistic way of fixing a few of the most common phpcs errors. The
+        " phpcbf program can generally do a better job than this.
+        function! FixPHPCSErrors() range
+            let saved_view = winsaveview()
+            silent! execute a:firstline . "," . a:lastline . 's/\([^[:space:]=]\)=/\1 ='
+            silent! execute a:firstline . "," . a:lastline . 's/=>\(\S\)/=> \1'
+            silent! execute a:firstline . "," . a:lastline . 's/=\([^>=[:space:]]\)/= \1'
+            silent! execute a:firstline . "," . a:lastline . 's/\([^-[:space:]]\)>\(\S\)/\1 > \2'
+            call winrestview(saved_view)
+        endfunc
 
-        " Don't show tabs.
-        au FileType javascript setlocal nolist
+        if has("gui_macvim")
+            " Fix selection line
+            autocmd FileType php vmap <D-r> :call FixPHPCSErrors()<cr>
 
-        " Indent width.
-        au FileType javascript setlocal softtabstop=4
-        au FileType javascript setlocal shiftwidth=4
-        au FileType javascript setlocal tabstop=4
-    " }}
+            " Fix current line
+            autocmd FileType php nmap <D-r> :call FixPHPCSErrors()<cr>
+        endif
 
-    " A simplistic way of fixing a few of the most common phpcs errors. The
-    " phpcbf program can generally do a better job than this.
-    function! FixPHPCSErrors() range
-        let saved_view = winsaveview()
-        silent! execute a:firstline . "," . a:lastline . 's/\([^[:space:]=]\)=/\1 ='
-        silent! execute a:firstline . "," . a:lastline . 's/=>\(\S\)/=> \1'
-        silent! execute a:firstline . "," . a:lastline . 's/=\([^>=[:space:]]\)/= \1'
-        silent! execute a:firstline . "," . a:lastline . 's/\([^-[:space:]]\)>\(\S\)/\1 > \2'
-        call winrestview(saved_view)
-    endfunc
+        " Use Web-Store style logging for whatever symbol is under the cursor.
+        function! LogWordUnderCursor()
+            " We need to include the dollar symbol in <cword>.
+            let l:keyword = &iskeyword
+            set iskeyword+=$
 
-    if has("gui_macvim")
-        " Fix selection line
-        autocmd FileType php vmap <D-r> :call FixPHPCSErrors()<cr>
+            execute "normal o
+                \Yii::log(sprintf('DEBUG " . expand("<cword>") . " = %s',
+                \ print_r(" . expand("<cword>") . ", true)),
+                \\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
 
-        " Fix current line
-        autocmd FileType php nmap <D-r> :call FixPHPCSErrors()<cr>
-    endif
+            " Restore keyword setting.
+            let &iskeyword = l:keyword
+        endfunction
 
-	" Use Web-Store style logging for whatever symbol is under the cursor.
-	function! LogWordUnderCursor()
-		" We need to include the dollar symbol in <cword>.
-		let l:keyword = &iskeyword
-		set iskeyword+=$
+        " Function which returns the current visual selection, from:
+        " http://stackoverflow.com/questions/1533565/how-to-get-visually-selected-text-in-vimscript
+        function! GetVisualSelection()
+            " Why is this not a built-in Vim script function?!
+            let [lnum1, col1] = getpos("'<")[1:2]
+            let [lnum2, col2] = getpos("'>")[1:2]
+            let lines = getline(lnum1, lnum2)
+            let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
+            let lines[0] = lines[0][col1 - 1:]
+            return join(lines, "\n")
+        endfunction
 
-		execute "normal o
-			\Yii::log(sprintf('DEBUG " . expand("<cword>") . " = %s',
-			\ print_r(" . expand("<cword>") . ", true)),
-			\\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
+        " Use Web-Store style logging for whatever symbol is under the cursor.
+        function! LogSelectedText()
+            let selectedText = GetVisualSelection()
 
-		" Restore keyword setting.
-		let &iskeyword = l:keyword
-	endfunction
+            execute "normal o
+                \Yii::log(sprintf('DEBUG " . selectedText. " = %s',
+                \print_r(" . selectedText . ", true)),
+                \\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
+        endfunction
 
-    " Function which returns the current visual selection, from:
-    " http://stackoverflow.com/questions/1533565/how-to-get-visually-selected-text-in-vimscript
-    function! GetVisualSelection()
-        " Why is this not a built-in Vim script function?!
-        let [lnum1, col1] = getpos("'<")[1:2]
-        let [lnum2, col2] = getpos("'>")[1:2]
-        let lines = getline(lnum1, lnum2)
-        let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
-        let lines[0] = lines[0][col1 - 1:]
-        return join(lines, "\n")
-    endfunction
+        autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
+        autocmd FileType php vmap <Leader>v :call LogSelectedText()<cr>
 
-	" Use Web-Store style logging for whatever symbol is under the cursor.
-	function! LogSelectedText()
-        let selectedText = GetVisualSelection()
-
-		execute "normal o
-			\Yii::log(sprintf('DEBUG " . selectedText. " = %s',
-			\print_r(" . selectedText . ", true)),
-			\\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
-	endfunction
-
-	autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
-	autocmd FileType php vmap <Leader>v :call LogSelectedText()<cr>
-
-    " Switch to a sensible default directory.
-    cd /Volumes/dev/copper
+        " Switch to a sensible default directory.
+        cd /Volumes/dev/copper
+    endif " end if $LIGHTSPEED
 " }}
 
 " tmux/iterm integration {{
@@ -1348,6 +1348,10 @@
     nnoremap <Leader>J :silent belowright new<cr>
     nnoremap <Leader>H :silent leftabove vnew<cr>
     nnoremap <Leader>L :silent rightbelow vnew<cr>
+" }}
+
+" golang {{
+let $GOPATH="~/.go"
 " }}
 
 " TODOs {{
