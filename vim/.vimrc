@@ -644,10 +644,10 @@
         " Normal mode keyboard shortcuts.
         if has("gui_macvim")
             " default: resume
-            nnoremap <silent> <D-p> :Unite -resume -profile-name=default buffer file_rec/async file_mru<cr>
+            nnoremap <silent> <D-p> :Unite -resume -input= -profile-name=default buffer file_rec/async file_mru<cr>
 
             " with shift: do not resume
-            nnoremap <silent> <D-P> :Unite -profile-name=default buffer file_rec/async file_mru<cr>
+            nnoremap <silent> <D-P> :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
         endif
 
         nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
