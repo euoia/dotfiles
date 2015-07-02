@@ -1204,7 +1204,6 @@
     function! TclLookup(kw)
         execute '!open "http://www.tcl.tk/man/tcl/TclCmd/' . a:kw . '.htm"'
     endfunction
-
 " }}
 
 " Fixes and workarounds {{
@@ -1363,6 +1362,14 @@
     nnoremap <Leader>J :silent belowright new<cr>
     nnoremap <Leader>H :silent leftabove vnew<cr>
     nnoremap <Leader>L :silent rightbelow vnew<cr>
+
+    if exists('$TMUX')
+        let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+        let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+    else
+        let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+        let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+    endif
 " }}
 
 " golang {{
