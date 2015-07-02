@@ -1340,7 +1340,9 @@
 
 " tmux/iterm integration {{
     " Set window title in tmux.
-    autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window 'vim:".expand("%")."'")
+    " Disabled this on 2015-06-23. I prefer to set windows titles manually
+    " these days.
+    " autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window 'vim:".expand("%")."'")
 
     nnoremap <Leader>K :silent aboveleft new<cr>
     nnoremap <Leader>J :silent belowright new<cr>
