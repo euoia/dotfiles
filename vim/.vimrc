@@ -1021,6 +1021,21 @@
         autocmd FileType javascript nmap <silent> <buffer> <Leader>, :JsFormat<cr>
         autocmd FileType javascript nmap <Leader>s :silent call CommitThis("style fixes")<cr>
 
+        " Console.log whatever word is under the cursor.
+        function! JSLogWordUnderCursor()
+            " We need to include the dollar symbol in <cword>.
+            let l:keyword = &iskeyword
+            set iskeyword+=$
+
+            execute "normal o
+                \console.log(`" . expand("<cword>") . " = ${" . expand("<cword>") . "}`);"
+
+            " Restore keyword setting.
+            let &iskeyword = l:keyword
+        endfunction
+
+        autocmd FileType javascript nmap <Leader>l :call JSLogWordUnderCursor()<cr>
+
         " Highlighting {{
             " Highlight ObjectKeys
             hi link jsObjectKey Identifier
