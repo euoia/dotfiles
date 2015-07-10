@@ -25,6 +25,7 @@
     " summerfruit256 comes from vim-colorschemes.
     Plug 'git@github.com:euoia/summerfruit256.vim.git'
 
+    Plug 'chriskempson/base16-vim'
     Plug 'Shougo/neomru.vim'
     Plug 'Shougo/unite-outline'
     Plug 'Shougo/unite.vim'
@@ -39,8 +40,10 @@
     Plug 'git@github.com:euoia/js-format.git'
     Plug 'git@github.com:euoia/vim-neosnippet-snippets.git'
     Plug 'groenewege/vim-less'
+    " Plug 'joonty/vdebug'
     Plug 'marijnh/tern_for_vim'
     Plug 'mustache/vim-mustache-handlebars'
+    Plug 'MattesGroeger/vim-bookmarks'
     Plug 'pangloss/vim-javascript'
     Plug 'rking/ag.vim'
     Plug 'scrooloose/nerdcommenter'
@@ -68,7 +71,9 @@
     " something` type :h 'something' including the single quotes. For example,
     " :help 'nocompatible'.
 
-    " Set the colorscheme. This may be overridden in ~/.gvimrc for GUI vims.
+    " Set the colorscheme.
+    " Preferred light theme:
+    set background=light
     colorscheme summerfruit256
 
     " Whether to be compatible with vi. For modern vims, generally
@@ -428,8 +433,10 @@
     " DBGPavim {{
         " DBGPavim is a PHP debugger.
         " PHP debugging from https://github.com/brookhong/DBGPavim
-        let g:dbgPavimPort = 9009
-        let g:dbgPavimBreakAtEntry = 0
+        let g:dbgPavimPort = 9000
+        let g:dbgPavimBreakAtEntry = 1
+        let g:dbgPavimPathMap =
+            \[['/Users/james.pickard/Code/cloud-dev-vagrant/web/cloud','/web/cloud'],]
     " }}
     " JsFormat {{
         " JsFormat reformats JavaScript code.
@@ -688,8 +695,19 @@
         " and requires python.
         let g:ycm_key_list_select_completion = ['<Enter>', '<Down>']
     " }}
-
+    " MattesGroeger/vim-bookmarks {{
+        let g:bookmark_save_per_working_dir = 1
+        let g:bookmark_auto_save = 1
+        let g:bookmark_auto_save_file = '/tmp/my_bookmarks'
+        let g:bookmark_auto_save_file = $HOME . '.vim/bookmarks'
+    " }}
     " Disabled plugins {{
+        " VDebug {{
+            if 0
+                let g:vdebug_options['path_maps'] = {"/web/cloud": "/Users/james.pickard/Code/cloud-dev-vagrant/web/cloud"}
+                let g:vdebug_options['server'] = 'localhost'
+            endif
+        " }}
         " BufExplorer {{
             " BufExplorer provides a nice way to navigate open buffers.
             " Disabled because with Unite I don't need this.
@@ -861,6 +879,11 @@
             endif
         " }}
     " }}
+    " tern_for_vim {{
+        let g:tern_show_argument_hints=1
+        let g:tern_show_signature_in_pum=1
+    "
+" }}
 " }}
 
 " Mappings {{
@@ -1203,6 +1226,30 @@
 
     function! TclLookup(kw)
         execute '!open "http://www.tcl.tk/man/tcl/TclCmd/' . a:kw . '.htm"'
+    endfunction
+
+    " Preferred light colour scheme.
+    function! LightsOn()
+        set background=light
+        colorscheme summerfruit256
+    endfunction
+
+    command! LightsOn :call LightsOn()
+
+    " Preferred dark colour scheme.
+    function! LightsOff()
+        set background=dark
+        colorscheme solarized
+    endfunction
+
+    command! LightsOff :call LightsOff()
+
+    " Useful for debugging colour schemes: show the hightlight group under the
+    " cursor.
+    function! GetHighlightUnderCursor()
+        :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
+            \ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
+            \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
     endfunction
 " }}
 

@@ -5,10 +5,6 @@
 " }}
 
 " Basics {{
-    " Light-background fruity theme based on
-    " http://www.vim.org/scripts/script.php?script_id=2577
-    colorscheme summerfruit256
-
     " Set the font and height.
     set guifont=Monaco:h14
 
