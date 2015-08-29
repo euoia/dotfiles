@@ -59,6 +59,9 @@
     Plug 'vim-scripts/taglist.vim'
     Plug 'kchmck/vim-coffee-script'
     Plug 'fatih/vim-go'
+    Plug 'Shougo/vimproc'
+    Plug 'Shougo/unite.vim'
+    Plug 'm2mdas/phpcomplete-extended'
     call plug#end()
 
     " Disabling this for now. Many of the JavaScript snippets are annoying.
@@ -527,7 +530,7 @@
             let g:syntastic_tcl_nagelfar_conf='-filter "*Close brace not aligned*" -filter "*Suspicious \# char*"'
         " }}
         " JavaScript {{
-            let g:syntastic_javascript_checkers = ['jshint']
+            let g:syntastic_javascript_checkers = ['jshint', 'eslint']
         " }}
         " PHP {{
             " I removed phpmd because the "avoid excessively long variable
@@ -694,6 +697,23 @@
         " runs asynchronously. It works quite well, but needs to be compiled
         " and requires python.
         let g:ycm_key_list_select_completion = ['<Enter>', '<Down>']
+        let g:ycm_semantic_triggers =  {
+            \   'c' : ['->', '.'],
+            \   'objc' : ['->', '.'],
+            \   'ocaml' : ['.', '#'],
+            \   'cpp,objcpp' : ['->', '.', '::'],
+            \   'perl' : ['->'],
+            \   'php' : ['->', '::'],
+            \   'cs,java,javascript,d,python,perl6,scala,vb,elixir,go' : ['.'],
+            \   'vim' : ['re![_a-zA-Z]+[_\w]*\.'],
+            \   'ruby' : ['.', '::'],
+            \   'lua' : ['.', ':'],
+            \   'erlang' : [':'],
+            \ }
+    " }}
+    " marijnh/tern_for_vim {{
+        let g:tern_show_signature_in_pum='on_move'
+        let g:tern_show_signature_in_pum=1
     " }}
     " MattesGroeger/vim-bookmarks {{
         let g:bookmark_save_per_working_dir = 1
@@ -1118,6 +1138,9 @@
         autocmd FileType php setlocal matchpairs-=<:>
         autocmd FileType php setlocal foldmethod=manual
         autocmd FileType php setlocal nofoldenable
+
+        " https://github.com/m2mdas/phpcomplete-extended
+        autocmd FileType  php setlocal omnifunc=phpcomplete_extended#CompletePHP
     " }}
     " C++ {{
         " Settings for the NodeJS core code base {{
