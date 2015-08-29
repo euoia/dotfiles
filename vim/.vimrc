@@ -536,6 +536,7 @@
             " I removed phpmd because the "avoid excessively long variable
             " names" error was bothering me.
             let g:syntastic_php_checkers = ['php', 'phpcs']
+            let g:syntastic_php_phpcs_args = ['--standard=phpcs.xml']
         " }}
     " }}
     " TagList {{
@@ -1112,6 +1113,7 @@
         autocmd FileType vim setlocal tabstop=4
         autocmd FileType vim setlocal shiftwidth=4
         autocmd FileType vim setlocal expandtab
+        autocmd FileType vim setlocal list
     " }}
     " Python {{
         autocmd FileType python setlocal tabstop=2
@@ -1138,6 +1140,8 @@
         autocmd FileType php setlocal matchpairs-=<:>
         autocmd FileType php setlocal foldmethod=manual
         autocmd FileType php setlocal nofoldenable
+        autocmd FileType php setlocal expandtab
+        autocmd FileType php setlocal list
 
         " https://github.com/m2mdas/phpcomplete-extended
         autocmd FileType  php setlocal omnifunc=phpcomplete_extended#CompletePHP
