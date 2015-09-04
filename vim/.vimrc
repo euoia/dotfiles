@@ -25,25 +25,29 @@
     " summerfruit256 comes from vim-colorschemes.
     Plug 'git@github.com:euoia/summerfruit256.vim.git'
 
-    Plug 'chriskempson/base16-vim'
+    " Plug 'joonty/vdebug'
+    Plug 'MattesGroeger/vim-bookmarks'
     Plug 'Shougo/neomru.vim'
     Plug 'Shougo/unite-outline'
     Plug 'Shougo/unite.vim'
+    Plug 'Shougo/vimproc'
     Plug 'Shougo/vimproc.vim'
     Plug 'SirVer/ultisnips'
     Plug 'Valloric/YouCompleteMe'
     Plug 'brookhong/DBGPavim'
+    Plug 'chriskempson/base16-vim'
     Plug 'euoia/toggle_maximize.vim'
+    Plug 'fatih/vim-go'
     Plug 'flazz/vim-colorschemes'
     Plug 'git@github.com:euoia/alignify.git'
     Plug 'git@github.com:euoia/copyblock.git'
     Plug 'git@github.com:euoia/js-format.git'
     Plug 'git@github.com:euoia/vim-neosnippet-snippets.git'
     Plug 'groenewege/vim-less'
-    " Plug 'joonty/vdebug'
+    Plug 'kchmck/vim-coffee-script'
+    Plug 'm2mdas/phpcomplete-extended'
     Plug 'marijnh/tern_for_vim'
     Plug 'mustache/vim-mustache-handlebars'
-    Plug 'MattesGroeger/vim-bookmarks'
     Plug 'pangloss/vim-javascript'
     Plug 'rking/ag.vim'
     Plug 'scrooloose/nerdcommenter'
@@ -57,11 +61,6 @@
     Plug 'vim-scripts/mru.vim'
     Plug 'vim-scripts/sessionman.vim'
     Plug 'vim-scripts/taglist.vim'
-    Plug 'kchmck/vim-coffee-script'
-    Plug 'fatih/vim-go'
-    Plug 'Shougo/vimproc'
-    Plug 'Shougo/unite.vim'
-    Plug 'm2mdas/phpcomplete-extended'
     call plug#end()
 
     " Disabling this for now. Many of the JavaScript snippets are annoying.
@@ -636,19 +635,14 @@
             \ 'prompt': '» ',
             \ 'winheight': 10})
 
-        " For file_rec/async ignore published assets.
-        call unite#custom#source(
-            \ 'file_rec/async',
-            \ 'ignore_pattern',
-            \ '/Volumes/dev/copper/assets/.*')
-
         " Use the ag program for searching if it available.
         if executable('ag')
             let g:unite_source_grep_command='ag'
             let g:unite_source_grep_default_opts='--nocolor --nogroup -S -C4'
             let g:unite_source_grep_recursive_opt=''
             let g:unite_source_rec_async_command =
-                    \ 'ag --follow --nocolor --nogroup --hidden -g ""'
+                \ ['ag', '--follow', '--nocolor', '--nogroup',
+                \ '--hidden', '-g']
         endif
 
         " Where to store the on-disk cache.
@@ -1144,7 +1138,7 @@
         autocmd FileType php setlocal list
 
         " https://github.com/m2mdas/phpcomplete-extended
-        autocmd FileType  php setlocal omnifunc=phpcomplete_extended#CompletePHP
+        autocmd FileType php setlocal omnifunc=phpcomplete_extended#CompletePHP
     " }}
     " C++ {{
         " Settings for the NodeJS core code base {{
