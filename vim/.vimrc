@@ -25,12 +25,10 @@
     " summerfruit256 comes from vim-colorschemes.
     Plug 'git@github.com:euoia/summerfruit256.vim.git'
 
-    " Plug 'joonty/vdebug'
     Plug 'MattesGroeger/vim-bookmarks'
     Plug 'Shougo/neomru.vim'
     Plug 'Shougo/unite-outline'
     Plug 'Shougo/unite.vim'
-    Plug 'Shougo/vimproc'
     Plug 'Shougo/vimproc.vim'
     Plug 'SirVer/ultisnips'
     Plug 'Valloric/YouCompleteMe'
@@ -48,6 +46,7 @@
     Plug 'm2mdas/phpcomplete-extended'
     Plug 'marijnh/tern_for_vim'
     Plug 'mustache/vim-mustache-handlebars'
+    Plug 'mxw/vim-jsx'
     Plug 'pangloss/vim-javascript'
     Plug 'rking/ag.vim'
     Plug 'scrooloose/nerdcommenter'
@@ -61,8 +60,8 @@
     Plug 'vim-scripts/mru.vim'
     Plug 'vim-scripts/sessionman.vim'
     Plug 'vim-scripts/taglist.vim'
-    call plug#end()
 
+    call plug#end()
     " Disabling this for now. Many of the JavaScript snippets are annoying.
     " TODO go through and copy useful ones.
     " Plug 'honza/vim-snippets'
@@ -529,7 +528,7 @@
             let g:syntastic_tcl_nagelfar_conf='-filter "*Close brace not aligned*" -filter "*Suspicious \# char*"'
         " }}
         " JavaScript {{
-            let g:syntastic_javascript_checkers = ['jshint', 'eslint']
+            let g:syntastic_javascript_checkers = ['eslint']
         " }}
         " PHP {{
             " I removed phpmd because the "avoid excessively long variable
