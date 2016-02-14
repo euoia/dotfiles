@@ -43,7 +43,7 @@
     Plug 'git@github.com:euoia/vim-neosnippet-snippets.git'
     Plug 'groenewege/vim-less'
     Plug 'kchmck/vim-coffee-script'
-    Plug 'm2mdas/phpcomplete-extended'
+    " Plug 'm2mdas/phpcomplete-extended'
     Plug 'marijnh/tern_for_vim'
     Plug 'mustache/vim-mustache-handlebars'
     Plug 'mxw/vim-jsx'
@@ -536,6 +536,11 @@
             let g:syntastic_php_checkers = ['php', 'phpcs']
             let g:syntastic_php_phpcs_args = ['--standard=phpcs.xml']
         " }}
+        " HTML {{
+            " With mustache templates in the HTML there are lots of errors:
+            " '<' + '/' + letter not allowed here
+            let g:syntastic_html_tidy_ignore_errors = ['letter not allowed here']
+        " }}
     " }}
     " TagList {{
         " TagList provides an "outline" of your files. It can show the
@@ -942,8 +947,11 @@
     " Disable <esc>. Using <esc> forces your hand off the home row. Using jk
     " works well and is typed rarely enough that's it is not a bother.
     " From http://learnvimscriptthehardway.stevelosh.com/chapters/10.html
+    "
+    " Also see the following article on how to use a single press of caps-lock
+    " to send escape:
+    " http://stevelosh.com/blog/2012/10/a-modern-space-cadet/#controlescape
     inoremap jk <esc>
-    inoremap <esc> <nop>
 
     " Use normal mode backspace to toggle between buffers.
     nmap <BS> 
@@ -1030,7 +1038,7 @@
     " JavaScript {{
         " NodeJS settings {{
             " Disabled when not working on NodeJS code.
-            if 0
+            if 1
                 au FileType javascript setlocal expandtab " spaces instead of tab - nodejs style http://nodeguide.com/style.html
                 au FileType javascript setlocal list " if we don't have tabs, then we want to see tabs!
                 au FileType javascript setlocal softtabstop=2
@@ -1042,15 +1050,21 @@
         " Show menu and previews for completions.
         au FileType javascript setlocal completeopt=preview,menu
 
-        " NodeJS: store last stack trace in log/lasterror.txt
-        autocmd FileType javascript setlocal makeprg=cat\ log/lasterror.txt
-        autocmd FileType javascript setlocal errorformat=\ \ \ \ at\ %m\ (%f:%l:%c)
+        autocmd FileType javascript setlocal makeprg=mocha\ --reporter=tap
+        autocmd FileType javascript setlocal errorformat=%\\s%\\+at\ %m\ (%f:%l:%c)
 
         " Format as paragraph regardless of trailing whitespace.
         autocmd FileType php setlocal formatoptions-=w
 
         " Game making {{
-            autocmd FileType javascript nmap <leader>w :s/width/\=KeepCase(submatch(0), 'height')
+            " Uses tpope/vim-abolish plugin.
+            autocmd FileType javascript nmap <leader>w :S/width/height
+            autocmd FileType javascript vmap <leader>w :S/width/height
+        " }}
+
+        " React {{
+            " Highlight HTML even in .js files (.jsx not required).
+            let g:jsx_ext_required = 0
         " }}
 
         " A quick way to commit the current file after fixing the style.
@@ -1156,6 +1170,9 @@
         " Treat lines starting with asterisk as a bullet list (instead of a
         " multi line comment).
         autocmd FileType org setlocal comments=s1:/*,fb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
+    " }}
+    " .estlintrc {{
+        autocmd BufRead .eslintrc setlocal filetype=json
     " }}
 " }}
 
