@@ -73,7 +73,7 @@
             " Run make.
             " Unmap command-M (used for minimize)
             macmenu Window.Minimize key=<nop>
-            nnoremap <silent> <D-m> :silent make \| copen<cr>
+            nnoremap <silent> <D-m> :silent make<cr>
 
             " Navigate the location list
             nnoremap <silent> <D-e> :lprevious<cr>
