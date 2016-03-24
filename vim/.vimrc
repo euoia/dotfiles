@@ -1,5 +1,5 @@
 " Modeline and notes {{
-"   vim: set foldmarker={{,}} foldlevel=0 spell:
+"   vim: set foldmarker={{,}} foldlevel=0 spell shiftwidth=4 tabstop=4 list expandtab:
 "
 "   This is James Pickard's .vimrc (http://github.com/euoia).
 "
@@ -29,7 +29,7 @@
     Plug 'Shougo/neomru.vim'
     Plug 'Shougo/unite-outline'
     Plug 'Shougo/unite.vim'
-    Plug 'Shougo/vimproc.vim'
+    Plug 'Shougo/vimproc.vim', { 'do': 'make' }
     Plug 'SirVer/ultisnips'
     Plug 'Valloric/YouCompleteMe'
     Plug 'brookhong/DBGPavim'
@@ -37,6 +37,7 @@
     Plug 'euoia/toggle_maximize.vim'
     Plug 'fatih/vim-go'
     Plug 'flazz/vim-colorschemes'
+    Plug 'git@github.com:euoia/vim-sort-top.git'
     Plug 'git@github.com:euoia/alignify.git'
     Plug 'git@github.com:euoia/copyblock.git'
     Plug 'git@github.com:euoia/js-format.git'
@@ -60,6 +61,11 @@
     Plug 'vim-scripts/mru.vim'
     Plug 'vim-scripts/sessionman.vim'
     Plug 'vim-scripts/taglist.vim'
+    Plug 'LucHermitte/lh-vim-lib'
+    Plug 'LucHermitte/local_vimrc'
+    Plug 'xolox/vim-misc'
+    Plug 'danro/rename.vim'
+    Plug 'editorconfig/editorconfig-vim'
 
     call plug#end()
     " Disabling this for now. Many of the JavaScript snippets are annoying.
@@ -129,9 +135,9 @@
     " :tag <function name> and jump to its definition. When the cursor is on a
     " tag you can jump to the definition using C-].
     "
-    " Look up the directory hierarchy for a tags file.
-    set tags=./tags,tags,../tags,../../tags,../../../tags,
-        \../../../../tags,../../../../../tags
+    " Store tags in the .git directory.
+    " This idea is from http://tbaggery.com/2011/08/08/effortless-ctags-with-git.html
+    set tags=.git/tags
 
     " Which register to use for yanked text.
     " unnamed - use the operating system clipboard.
@@ -436,8 +442,10 @@
         " PHP debugging from https://github.com/brookhong/DBGPavim
         let g:dbgPavimPort = 9000
         let g:dbgPavimBreakAtEntry = 1
-        let g:dbgPavimPathMap =
-            \[['/Users/james.pickard/Code/cloud-dev-vagrant/web/cloud','/web/cloud'],]
+        let g:dbgPavimPathMap = [
+            \['/Users/james.pickard/Code/cloud-dev-vagrant/web/cloud','/web/cloud'],
+            \['/Users/james.pickard/Code/ecom-middleware','/vagrant'],
+        \]
     " }}
     " JsFormat {{
         " JsFormat reformats JavaScript code.
@@ -462,7 +470,8 @@
         endfunction
 
         " Mappings. The trailing whitespace is intentional.
-        nmap <D-2> :CT "=GetFirstPartOfBranchName()<cr> 
+        " nmap <D-2> :CT "=GetFirstPartOfBranchName()<cr> 
+        nmap <D-2> :CT ""<Left>
         nmap <Leader>c :CT "=GetFirstPartOfBranchName()<cr> 
     " }}
     " Matchit {{
@@ -535,6 +544,8 @@
             " names" error was bothering me.
             let g:syntastic_php_checkers = ['php', 'phpcs']
             let g:syntastic_php_phpcs_args = ['--standard=phpcs.xml']
+            let g:syntastic_php_phpmd_post_args = ['unusedcode']
+            " This bug with phpmd is annoying: https://github.com/phpmd/phpmd/issues/57
         " }}
         " HTML {{
             " With mustache templates in the HTML there are lots of errors:
@@ -644,9 +655,10 @@
             let g:unite_source_grep_command='ag'
             let g:unite_source_grep_default_opts='--nocolor --nogroup -S -C4'
             let g:unite_source_grep_recursive_opt=''
+            let g:unite_source_rec_max_cache_files=40000
             let g:unite_source_rec_async_command =
                 \ ['ag', '--follow', '--nocolor', '--nogroup',
-                \ '--hidden', '-g']
+                \ '--hidden', '-g', '']
         endif
 
         " Where to store the on-disk cache.
@@ -661,10 +673,10 @@
         " Normal mode keyboard shortcuts.
         if has("gui_macvim")
             " default: resume
-            nnoremap <silent> <D-p> :Unite -resume -input= -profile-name=default buffer file_rec/async file_mru<cr>
+            nnoremap <silent> <D-p> :UniteWithCurrentDir -resume -input= -profile-name=default buffer file_rec file_mru<cr>
 
             " with shift: do not resume
-            nnoremap <silent> <D-P> :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
+            nnoremap <silent> <D-P> :UniteWithCurrentDir -profile-name=default -input= buffer file_rec/async file_mru<cr>
         endif
 
         nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
@@ -1028,10 +1040,10 @@
         au BufRead,BufNewFile *.jade setlocal softtabstop=2
     " }}
     " Html {{
-        autocmd FileType html setlocal noexpandtab
-        autocmd FileType html setlocal softtabstop=4
-        autocmd FileType html setlocal shiftwidth=4
-        autocmd FileType html setlocal tabstop=4
+        autocmd FileType html setlocal expandtab
+        autocmd FileType html setlocal softtabstop=2
+        autocmd FileType html setlocal shiftwidth=2
+        autocmd FileType html setlocal tabstop=2
         autocmd FileType html setlocal isk=@,48-57,_,192-255,_,@,%,$,-
 
     " }}
@@ -1046,15 +1058,55 @@
                 au FileType javascript setlocal tabstop=2
             endif
         " }}
+        function! JavasScript2Spaces()
+            au FileType javascript setlocal expandtab " spaces instead of tab - nodejs style http://nodeguide.com/style.html
+            au FileType javascript setlocal list " if we don't have tabs, then we want to see tabs!
+            au FileType javascript setlocal softtabstop=2
+            au FileType javascript setlocal shiftwidth=2
+            au FileType javascript setlocal tabstop=2
+
+            au FileType javascript.jsx setlocal expandtab
+            au FileType javascript.jsx setlocal list
+            au FileType javascript.jsx setlocal softtabstop=2
+            au FileType javascript.jsx setlocal shiftwidth=2
+            au FileType javascript.jsx setlocal tabstop=2
+        endfunction
+
+        function! JavasScript4Spaces()
+            au FileType javascript setlocal expandtab
+            au FileType javascript setlocal list
+            au FileType javascript setlocal softtabstop=4
+            au FileType javascript setlocal shiftwidth=4
+            au FileType javascript setlocal tabstop=4
+
+            au FileType javascript.jsx setlocal expandtab
+            au FileType javascript.jsx setlocal list
+            au FileType javascript.jsx setlocal softtabstop=4
+            au FileType javascript.jsx setlocal shiftwidth=4
+            au FileType javascript.jsx setlocal tabstop=4
+        endfunction
+
+        function! JavasScriptTabs()
+            au FileType javascript setlocal noexpandtab
+            au FileType javascript setlocal nolist
+            au FileType javascript setlocal softtabstop=4
+            au FileType javascript setlocal shiftwidth=4
+            au FileType javascript setlocal tabstop=4
+
+            au FileType javascript.jsx setlocal noexpandtab
+            au FileType javascript.jsx setlocal nolist
+            au FileType javascript.jsx setlocal softtabstop=4
+            au FileType javascript.jsx setlocal shiftwidth=4
+            au FileType javascript.jsx setlocal tabstop=4
+        endfunction
+
+        autocmd FileType javascript abbr <buffer> c const
 
         " Show menu and previews for completions.
-        au FileType javascript setlocal completeopt=preview,menu
+        autocmd FileType javascript setlocal completeopt=preview,menu
 
         autocmd FileType javascript setlocal makeprg=mocha\ --reporter=tap
         autocmd FileType javascript setlocal errorformat=%\\s%\\+at\ %m\ (%f:%l:%c)
-
-        " Format as paragraph regardless of trailing whitespace.
-        autocmd FileType php setlocal formatoptions-=w
 
         " Game making {{
             " Uses tpope/vim-abolish plugin.
@@ -1084,8 +1136,6 @@
             " Restore keyword setting.
             let &iskeyword = l:keyword
         endfunction
-
-        autocmd FileType javascript nmap <Leader>l :call JSLogWordUnderCursor()<cr>
 
         " Highlighting {{
             " Highlight ObjectKeys
@@ -1151,7 +1201,13 @@
         autocmd FileType php setlocal list
 
         " https://github.com/m2mdas/phpcomplete-extended
-        autocmd FileType php setlocal omnifunc=phpcomplete_extended#CompletePHP
+        " autocmd FileType php setlocal omnifunc=phpcomplete_extended#CompletePHP
+
+        " Format as paragraph regardless of trailing whitespace.
+        autocmd FileType php setlocal formatoptions-=w
+
+        autocmd BufWrite *.php silent execute 'call SortTop("use")'
+        autocmd BufWrite *.php silent execute 'call SortTop("require")'
     " }}
     " C++ {{
         " Settings for the NodeJS core code base {{
@@ -1173,6 +1229,9 @@
     " }}
     " .estlintrc {{
         autocmd BufRead .eslintrc setlocal filetype=json
+    " }}
+    " ecomlog {{
+        autocmd BufRead,BufEnter *.log setlocal filetype=ecomlog
     " }}
 " }}
 
@@ -1288,6 +1347,11 @@
             \ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
             \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"
     endfunction
+
+    autocmd FileType php nmap <leader>s :call SortTop("use")<cr>
+    autocmd FileType php nmap <leader>s :call SortTop("require")<cr>
+
+    command! -nargs=+ SG :silent! grep <args>
 " }}
 
 " Fixes and workarounds {{
@@ -1428,7 +1492,6 @@
                 \\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
         endfunction
 
-        autocmd FileType php nmap <Leader>l :call LogWordUnderCursor()<cr>
         autocmd FileType php vmap <Leader>v :call LogSelectedText()<cr>
 
         " Switch to a sensible default directory.
@@ -1457,7 +1520,7 @@
 " }}
 
 " golang {{
-let $GOPATH="~/.go"
+    let $GOPATH="~/.go"
 " }}
 
 " TODOs {{
