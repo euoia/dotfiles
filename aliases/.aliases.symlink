@@ -1,0 +1,15 @@
+alias -g json='python -m json.tool'
+alias cx='chmod +x'
+alias f='ffind'
+alias fr='findreplace'
+alias g='grep -i'
+alias gs='git status --short'
+alias hs="homestead"
+alias junk="git stash save 'junk'"
+alias re='source ~/.zshrc'
+alias so='source'
+alias tr='tmux-rename-window-pwd'
+alias tt='tt++ -r /Users/jamespickard/.tt_conf'
+alias ttdev='tt++ -r /Users/jamespickard/.tt_dev_conf'
+alias v="vagrant"
+alias vim='nvim'

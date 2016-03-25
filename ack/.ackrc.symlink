@@ -1,0 +1,10 @@
+--smart-case
+--type-set=cfg=.cfg
+--type-set=log=.log
+--type-add=html=.thtml
+--type-add=php=.ctp
+--type-set=c=.c
+--type-add=c=.h
+--ignore-dir=DEAD
+--ignore-dir=vendor
+--ignore-file=is:tags
