@@ -66,6 +66,9 @@
     Plug 'xolox/vim-misc'
     Plug 'danro/rename.vim'
     Plug 'editorconfig/editorconfig-vim'
+    Plug 'danro/rename.vim'
+    Plug 'euoia/node-add-require.vim'
+    Plug 'euoia/vim-sort-top'
 
     call plug#end()
     " Disabling this for now. Many of the JavaScript snippets are annoying.
@@ -470,9 +473,8 @@
         endfunction
 
         " Mappings. The trailing whitespace is intentional.
-        " nmap <D-2> :CT "=GetFirstPartOfBranchName()<cr> 
-        nmap <D-2> :CT ""<Left>
-        nmap <Leader>c :CT "=GetFirstPartOfBranchName()<cr> 
+        nmap <D-2> :CT ""<left>
+        nmap <Leader>c :CT ""<left>
     " }}
     " Matchit {{
         " Matchit extends vim's bracket matching capability.
@@ -615,7 +617,7 @@
     " toggle_maximize {{
         " toggle_maximize provides a command to toggle between having the
         " current window maximized or not.
-        nnoremap <silent> <C-F> :call ToggleMaximize()<cr>
+        nnoremap <silent> <D-z> :call ToggleMaximize()<cr>
     " }}
     " UltiSnippets {{
         " UltiSnips provides snippet completions. You can define snippets with
@@ -915,6 +917,9 @@
         let g:tern_show_signature_in_pum=1
     "
 " }}
+    " node-add-require.vim {{
+        nmap <leader>r :call NodeAddRequire()<cr> | call SortTop('const')
+    " }}
 " }}
 
 " Mappings {{
@@ -1101,6 +1106,10 @@
         endfunction
 
         autocmd FileType javascript abbr <buffer> c const
+
+        " Abbreviations.
+        autocmd FileType javascript abbreviate <buffer> c const
+
 
         " Show menu and previews for completions.
         autocmd FileType javascript setlocal completeopt=preview,menu
