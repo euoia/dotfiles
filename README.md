@@ -1,3 +1,2 @@
-dotfiles
---------
-These are my dotfiles.
+# dotfiles
+These are James Pickard's dotfiles.
