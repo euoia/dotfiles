@@ -71,6 +71,7 @@
     Plug 'junkblocker/patchreview-vim'
     Plug 'Shougo/deoplete.nvim'
     Plug 'carlitux/deoplete-ternjs'
+    Plug 'tpope/vim-surround'
 
     let g:neomake_javascript_jshint_maker = {
     \ 'args': ['--verbose'],
@@ -91,7 +92,10 @@
     " 'nocompatible'. Vim supports tab-completion of help topics.
 
     " Set the colorscheme.
+    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
     colorscheme summerfruit256
+    set background=dark
+
 
     " Whether to use .vimrc configuration from vim's current directory.
     " Enabling exrc is a security risk since a rogue .vimrc can execute
