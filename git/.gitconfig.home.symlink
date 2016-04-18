@@ -48,3 +48,5 @@
 # Following sections are from Ben Hoskings peepcode: https://peepcode.com/products/advanced-git
 [push]
 	default = simple
+[init]
+	templatedir = ~/.git_template
