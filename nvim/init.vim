@@ -102,6 +102,7 @@
     " 'nocompatible'. Vim supports tab-completion of help topics.
 
     " Set the colorscheme.
+    set termguicolors
     let $NVIM_TUI_ENABLE_TRUE_COLOR=1
     colorscheme summerfruit256
     set background=dark
@@ -637,7 +638,7 @@
     " UltiSnippets {{
         " UltiSnips provides snippet completions. You can define snippets with
         " placeholders that you can tab through.
-        let g:UltiSnipsSnippetsDir = "~/.vim/plugged/vim-neosnippet-snippets/MyUltiSnips"
+        let g:UltiSnipsSnippetsDir = "~/.config/nvim/plugged/vim-neosnippet-snippets/MyUltiSnips"
         let g:UltiSnipsExpandTrigger = "<tab>"
         let g:UltiSnipsJumpForwardTrigger="<tab>"
         let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
