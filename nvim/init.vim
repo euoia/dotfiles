@@ -1,5 +1,5 @@
 " Modeline and notes {{
-"   vim: set foldmarker={{,}} foldlevel=0 spell expandtab
+"   vim: set foldmarker={{,}} foldlevel=0 spell expandtab list
 "
 "   This is James Pickard's init.vim for Neovim (http://github.com/euoia).
 "
@@ -51,8 +51,6 @@
     Plug 'rking/ag.vim'
     Plug 'scrooloose/nerdcommenter'
     Plug 'scrooloose/nerdtree'
-    " Use neomake
-    " Plug 'scrooloose/syntastic'
     Plug 'tpope/vim-abolish'
     Plug 'tpope/vim-fugitive'
     Plug 'tpope/vim-markdown'
@@ -64,7 +62,6 @@
     Plug 'danro/rename.vim'
     Plug 'euoia/node-add-require.vim'
     Plug 'euoia/vim-sort-top'
-    Plug 'benekastah/neomake'
     Plug 'kassio/neoterm'
     Plug 'chriskempson/base16-vim'
     Plug 'codegram/vim-codereview'
@@ -73,12 +70,25 @@
     Plug 'carlitux/deoplete-ternjs'
     Plug 'tpope/vim-surround'
 
-    let g:neomake_javascript_jshint_maker = {
-    \ 'args': ['--verbose'],
-    \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
-    \ }
-    let g:neomake_javascript_enabled_makers = ['eslint']
+    " Removed in favour of Neovim alternatives.
+    " Plug 'scrooloose/syntastic'
 
+    " Neovim.
+    Plug 'benekastah/neomake'
+
+    " Typescript plugins {{
+        Plug 'leafgarland/typescript-vim'
+        Plug 'editorconfig/editorconfig-vim'
+        Plug 'mhartington/deoplete-typescript'
+
+
+        " Completion and errors.
+        Plug 'Quramy/tsuquyomi', { 'do': 'make -f make_mac.mak' }
+    " }}
+
+    " Elixir plugins {{
+        Plug 'elixir-lang/vim-elixir'
+    " }}
 
     call plug#end()
     " Disabling this for now. Many of the JavaScript snippets are annoying.
@@ -545,6 +555,9 @@
         " JavaScript {{
             let g:syntastic_javascript_checkers = ['eslint']
         " }}
+        " Typescript {{
+            let g:syntastic_typescript_checkers = ['tslint']
+        " }}
         " PHP {{
             " I removed phpmd because the "avoid excessively long variable
             " names" error was bothering me.
@@ -941,9 +954,25 @@
             \ 'texthl': 'MyWarningMsg',
         \ }
         call neomake#signs#RedefineWarningSign()
+
+        " JavaScript {{
+            let g:neomake_javascript_jshint_maker = {
+            \ 'args': ['--verbose'],
+            \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+            \ }
+            let g:neomake_javascript_enabled_makers = ['eslint']
+        " }}
+
+        " TypeScript {{
+            let g:neomake_typescript_enabled_makers = ['tslint']
+        " }}
     " }}
     " Shougo/deoplete.nvim {{
         let g:deoplete#enable_at_startup = 1
+        set completeopt+=noinsert
+
+        " Set patterns for TypeScript autocompletion
+        " https://github.com/Shougo/deoplete.nvim/blob/17a3aee7b51858193fdfd5f02f7af763af44a465/autoload/deoplete/init.vim#L142
     " }}
 " }}
 
@@ -1268,6 +1297,10 @@
     " .estlintrc {{
         autocmd BufRead .eslintrc setlocal filetype=json
     " }}
+	" elixir {{
+		au BufNewFile,BufRead *.ex set filetype=elixir
+		au BufNewFile,BufRead *.exs set filetype=elixir
+	" }}
 " }}
 
 " Commands and functions {{
