@@ -1,6 +1,6 @@
-" Modeline and notes {{
-"   vim: set foldmarker={{,}} foldlevel=0 spell expandtab list
+" vim: set foldmarker={{,}} foldlevel=0 spell expandtab list
 "
+" Notes {{
 "   This is James Pickard's init.vim for Neovim (http://github.com/euoia).
 "
 "   Thanks to Robert Melton (http://robertmelton.com/) for ideas on how to
@@ -28,11 +28,11 @@
     Plug 'Shougo/vimproc.vim', { 'do': 'make' }
     Plug 'MattesGroeger/vim-bookmarks'
     Plug 'Shougo/neomru.vim'
-    Plug 'Shougo/unite-outline'
-    Plug 'Shougo/unite.vim'
+    " Plug 'Shougo/unite-outline'
+    " Plug 'Shougo/unite.vim'
+    " Plug 'tsukkee/unite-tag'
     Plug 'SirVer/ultisnips'
-    " Trying https://github.com/Shougo/deoplete.nvim
-    " Plug 'Valloric/YouCompleteMe'
+    " Plug 'Valloric/YouCompleteMe' " Disabled for deoplete.
     Plug 'brookhong/DBGPavim'
     Plug 'chriskempson/base16-vim'
     Plug 'euoia/toggle_maximize.vim'
@@ -54,7 +54,6 @@
     Plug 'tpope/vim-abolish'
     Plug 'tpope/vim-fugitive'
     Plug 'tpope/vim-markdown'
-    Plug 'tsukkee/unite-tag'
     Plug 'vim-scripts/matchit.zip'
     Plug 'vim-scripts/mru.vim'
     Plug 'vim-scripts/sessionman.vim'
@@ -69,21 +68,38 @@
     Plug 'Shougo/deoplete.nvim'
     Plug 'carlitux/deoplete-ternjs'
     Plug 'tpope/vim-surround'
+    Plug 'editorconfig/editorconfig-vim'
+    Plug 'jwalton512/vim-blade'
+    Plug 'tomlion/vim-solidity'
+    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    Plug 'mattn/emmet-vim'
+    Plug 'hail2u/vim-css3-syntax'
+    Plug 'cakebaker/scss-syntax.vim'
+    Plug 'ap/vim-css-color'
+    Plug 'posva/vim-vue'
 
     " Removed in favour of Neovim alternatives.
     " Plug 'scrooloose/syntastic'
 
     " Neovim.
-    Plug 'benekastah/neomake'
+    " Plug 'benekastah/neomake'
+
+    " For formatting (especially Javascript using prettier).
+    Plug 'sbdchd/neoformat'
+
+    " Syntax checking and linting
+    Plug 'w0rp/ale'
 
     " Typescript plugins {{
-        Plug 'leafgarland/typescript-vim'
-        Plug 'editorconfig/editorconfig-vim'
-        Plug 'mhartington/deoplete-typescript'
+        " Plug 'mhartington/nvim-typescript' " Deoplete source.
+        " Plug 'leafgarland/typescript-vim' " Syntax (disabled for yats.vim).
+        " Plug 'HerringtonDarkholme/yats.vim' " Syntax.
 
+        " Completion and errors (disabled in favour of nvim-typescript)
+        " Plug 'Quramy/tsuquyomi', { 'do': 'make -f make_mac.mak' }
 
-        " Completion and errors.
-        Plug 'Quramy/tsuquyomi', { 'do': 'make -f make_mac.mak' }
+        se completeopt+=menu
+        " Plug 'vim-scripts/AutoComplPop'
     " }}
 
     " Elixir plugins {{
@@ -104,8 +120,9 @@
     " Set the colorscheme.
     set termguicolors
     let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+    set background=light " To do: change this to a script variable, setting
+                         " background = dark does not work.
     colorscheme summerfruit256
-    set background=dark
 
 
     " Whether to use .vimrc configuration from vim's current directory.
@@ -501,6 +518,17 @@
         " Most recently used configuration.
         let MRU_Max_Entries=1000
     " }}
+    " Neoformat {{
+        augroup fmt
+            autocmd!
+            autocmd BufWritePre *.js undojoin | Neoformat
+            autocmd BufWritePre *.vue undojoin | Neoformat
+        augroup END
+
+        autocmd FileType javascript set formatprg=prettier\ --stdin\ --single-quote
+        autocmd FileType vue set formatprg=vue-prettier\ --stdin\ --single-quote
+        let g:neoformat_try_formatprg = 1
+    " }}
     " NERDTree {{
         " NERDTree is a filesystem viewer. It appears in a side window. It has
         " bookmarking and sensible keyboard shortcuts.
@@ -540,36 +568,38 @@
         nnoremap <silent> <Leader>x :NERDTreeToggle<cr>
     " }}
     " Syntastic {{
-        " Syntastic provides hooks for many static syntax checkers. It
-        " highlights problems in the gutter.
+        if 0
+            " Syntastic provides hooks for many static syntax checkers. It
+            " highlights problems in the gutter.
 
-        " Always populate the location list. Oddly, syntastic doesn't seem to
-        " be able to use the error list.
-        let g:syntastic_always_populate_loc_list=1
+            " Always populate the location list. Oddly, syntastic doesn't seem to
+            " be able to use the error list.
+            let g:syntastic_always_populate_loc_list=1
 
-        " TCL {{
-            let g:syntastic_tcl_checkers = ['nagelfar']
+            " TCL {{
+                let g:syntastic_tcl_checkers = ['nagelfar']
 
-            " Ignore certain errors from nagelfar.
-            let g:syntastic_tcl_nagelfar_conf='-filter "*Close brace not aligned*" -filter "*Suspicious \# char*"'
-        " }}
-        " JavaScript {{
-            let g:syntastic_javascript_checkers = ['eslint']
-        " }}
-        " Typescript {{
-            let g:syntastic_typescript_checkers = ['tslint']
-        " }}
-        " PHP {{
-            " I removed phpmd because the "avoid excessively long variable
-            " names" error was bothering me.
-            let g:syntastic_php_checkers = ['php', 'phpcs']
-            let g:syntastic_php_phpcs_args = ['--standard=phpcs.xml']
-        " }}
-        " HTML {{
-            " With mustache templates in the HTML there are lots of errors:
-            " '<' + '/' + letter not allowed here
-            let g:syntastic_html_tidy_ignore_errors = ['letter not allowed here']
-        " }}
+                " Ignore certain errors from nagelfar.
+                let g:syntastic_tcl_nagelfar_conf='-filter "*Close brace not aligned*" -filter "*Suspicious \# char*"'
+            " }}
+            " JavaScript {{
+                let g:syntastic_javascript_checkers = ['eslint']
+            " }}
+            " Typescript {{
+                let g:syntastic_typescript_checkers = ['tslint']
+            " }}
+            " PHP {{
+                " I removed phpmd because the "avoid excessively long variable
+                " names" error was bothering me.
+                let g:syntastic_php_checkers = ['php', 'phpcs']
+                let g:syntastic_php_phpcs_args = ['--standard=phpcs.xml']
+            " }}
+            " HTML {{
+                " With mustache templates in the HTML there are lots of errors:
+                " '<' + '/' + letter not allowed here
+                let g:syntastic_html_tidy_ignore_errors = ['letter not allowed here']
+            " }}
+        endif
     " }}
     " TagList {{
         " TagList provides an "outline" of your files. It can show the
@@ -646,84 +676,115 @@
         let g:UltiSnipsEditSplit="horizontal"
     " }}
     " Unite {{
-        " Unite is a fuzzy matcher for any source. It's very configurable, but
-        " the most useful feature is opening files and jumping to tags. Unite
-        " replaces CtrlP.
-        " Unite does not suffer from this issue with CtrlP:
-        " https://github.com/kien/ctrlp.vim/issues/562
+        if 0
+            " Unite is a fuzzy matcher for any source. It's very configurable, but
+            " the most useful feature is opening files and jumping to tags. Unite
+            " replaces CtrlP.
+            " Unite does not suffer from this issue with CtrlP:
+            " https://github.com/kien/ctrlp.vim/issues/562
 
-        " Which kind of matcher to use.
-        call unite#filters#matcher_default#use(['matcher_fuzzy'])
+            " Which kind of matcher to use.
+            call unite#filters#matcher_default#use(['matcher_fuzzy'])
 
-        " Which kind of ranking to use.
-        call unite#filters#sorter_default#use(['sorter_rank'])
+            " Which kind of ranking to use.
+            call unite#filters#sorter_default#use(['sorter_rank'])
 
-        " Define a "default" profile.
-        call unite#custom#profile('default', 'context', {
-            \ 'buffer_name': 'default',
-            \ 'input': '',
-            \ 'start_insert': 1,
-            \ 'update_time': 0,
-            \ 'direction': 'botright',
-            \ 'prompt': '» ',
-            \ 'winheight': 10})
+            " Define a "default" profile.
+            call unite#custom#profile('default', 'context', {
+                \ 'buffer_name': 'default',
+                \ 'input': '',
+                \ 'start_insert': 1,
+                \ 'update_time': 0,
+                \ 'direction': 'botright',
+                \ 'prompt': '» ',
+                \ 'winheight': 10})
 
-        " Use the ag program for searching if it available.
-        if executable('ag')
-            let g:unite_source_grep_command='ag'
-            let g:unite_source_grep_default_opts='--nocolor --nogroup -S -C4'
-            let g:unite_source_grep_recursive_opt=''
-            let g:unite_source_rec_async_command =
-                \ ['ag', '--follow', '--nocolor', '--nogroup',
-                \ '--hidden', '-g']
-        endif
+            " Use the ag program for searching if it available.
+            if executable('ag')
+                let g:unite_source_grep_command='ag'
+                let g:unite_source_grep_default_opts='--nocolor --nogroup -S -C4'
+                let g:unite_source_grep_recursive_opt=''
+                let g:unite_source_rec_async_command =
+                    \ ['ag', '--follow', '--nocolor', '--nogroup',
+                    \ '--hidden', '-g']
+            endif
 
-        " Where to store the on-disk cache.
-        let g:unite_data_directory='~/.vim/.cache/unite'
+            " Where to store the on-disk cache.
+            let g:unite_data_directory='~/.vim/.cache/unite'
 
-        " Keyboard shortcuts inside Unite.
-        autocmd FileType unite imap <buffer> <ESC> <Plug>(unite_exit)
-        autocmd FileType unite imap <buffer> <C-j> <Plug>(unite_select_next_line)
-        autocmd FileType unite imap <buffer> <C-k> <Plug>(unite_select_previous_line)
-        autocmd FileType unite imap <buffer> <C-r> <Plug>(unite_narrowing_input_history)
+            " Keyboard shortcuts inside Unite.
+            autocmd FileType unite imap <buffer> <ESC> <Plug>(unite_exit)
+            autocmd FileType unite imap <buffer> <C-j> <Plug>(unite_select_next_line)
+            autocmd FileType unite imap <buffer> <C-k> <Plug>(unite_select_previous_line)
+            autocmd FileType unite imap <buffer> <C-r> <Plug>(unite_narrowing_input_history)
 
-        " Normal mode keyboard shortcuts.
-        if has("gui_macvim")
+            " Normal mode keyboard shortcuts.
+            if has("gui_macvim")
+                " default: resume
+                nnoremap <silent> <D-p> :Unite -resume -input= -profile-name=default buffer file_rec/async file_mru<cr>
+
+                " with shift: do not resume
+                nnoremap <silent> <D-P> :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
+            endif
+
             " default: resume
-            nnoremap <silent> <D-p> :Unite -resume -input= -profile-name=default buffer file_rec/async file_mru<cr>
+            nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
 
             " with shift: do not resume
-            nnoremap <silent> <D-P> :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
+            nmap <Leader>P :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
+
+            nmap <Leader>b :Unite buffer<cr>
+
+            " Tags (functions) in tags file.
+            nmap <Leader>T :Unite -buffer-name=tag -resume tag<cr>
+
+            " Tags (functions) in current file.
+            nmap <Leader>t :Unite outline<cr>
+
+            " Files in current directory (recursive).
+            nmap <Leader>. :UniteWithCurrentDir file_rec<cr>
+
+            " Files in directory of current buffer (recursive).
+            nmap <Leader>e :UniteWithBufferDir file_rec<cr>
+
+            " Most recently used files.
+            nmap <leader>m :Unite file_mru<cr>
         endif
-
-        " default: resume
-        nmap <Leader>p :Unite -profile-name=default buffer file_rec/async file_mru<cr>
-
-        " with shift: do not resume
-        nmap <Leader>P :Unite -profile-name=default -input= buffer file_rec/async file_mru<cr>
-
-        nmap <Leader>b :Unite buffer<cr>
-
-        " Tags (functions) in tags file.
-        nmap <Leader>T :Unite -buffer-name=tag -resume tag<cr>
-
-        " Tags (functions) in current file.
-        nmap <Leader>t :Unite outline<cr>
-
-        " Files in current directory (recursive).
-        nmap <Leader>. :UniteWithCurrentDir file_rec<cr>
-
-        " Files in directory of current buffer (recursive).
-        nmap <Leader>e :UniteWithBufferDir file_rec<cr>
-
-        " Most recently used files.
-        nmap <leader>m :Unite file_mru<cr>
     " }}
     " unite-tag {{
         " unite-tag is a Unite extension for searching tags files.
-        let g:unite_source_tag_max_name_length = 30
-        let g:unite_source_tag_max_fname_length = 80
-        let g:unite_source_tag_show_location = 0
+        if 0
+            let g:unite_source_tag_max_name_length = 30
+            let g:unite_source_tag_max_fname_length = 80
+            let g:unite_source_tag_show_location = 0
+        endif
+    " }}
+    " FZF {{
+    " FZF is a fuzzy finder. This replaces Unite.
+        nmap <Leader>. :FZF<cr>
+
+        command! Buffers call fzf#run(fzf#wrap(
+            \ {'source': reverse(<sid>buflist()), 'bufname(v:val)')}))
+
+        function! s:buflist()
+            redir => ls
+            silent ls
+            redir END
+            return split(ls, '\n')
+        endfunction
+
+        function! s:bufopen(e)
+            execute 'buffer' matchstr(a:e, '^[ 0-9]*')
+        endfunction
+
+        nnoremap <silent> <Leader>b :call fzf#run({
+            \   'source':  reverse(<sid>buflist()),
+            \   'sink':    function('<sid>bufopen'),
+            \   'options': '+m',
+            \   'down':    len(<sid>buflist()) + 2
+            \ })<cr>
+
+		let $FZF_DEFAULT_COMMAND="ag -g '' --ignore='public'"
     " }}
     " YouCompleteMe {{
         " YouCompleteMe provides completions through a separate process which
@@ -937,44 +998,48 @@
         nmap <leader>r :call NodeAddRequire()<cr> \| call SortTop('const')
     " }}
     " Neomake {{
-        " Silence the 'completed with exit code 0' messages.
-        let g:neomake_verbose = 0
+        if 0
+            " Silence the 'completed with exit code 0' messages.
+            let g:neomake_verbose = 0
 
-        autocmd! BufWritePost * Neomake
+            autocmd! BufWritePost * Neomake
 
-        " Use syntastic style warnings.
-        let g:neomake_error_sign = {
-            \'texthl': 'ErrorMsg',
-            \'text': '>>'
-        \ }
-        call neomake#signs#RedefineErrorSign()
-
-        hi MyWarningMsg ctermbg=3 ctermfg=0
-        let g:neomake_warning_sign = {
-            \ 'text': '>>',
-            \ 'texthl': 'MyWarningMsg',
-        \ }
-        call neomake#signs#RedefineWarningSign()
-
-        " JavaScript {{
-            let g:neomake_javascript_jshint_maker = {
-            \ 'args': ['--verbose'],
-            \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+            " Use syntastic style warnings.
+            let g:neomake_error_sign = {
+                \'texthl': 'ErrorMsg',
+                \'text': '>>'
             \ }
-            let g:neomake_javascript_enabled_makers = ['eslint']
-        " }}
+            call neomake#signs#RedefineErrorSign()
 
-        " TypeScript {{
-            let g:neomake_typescript_enabled_makers = ['tslint']
-        " }}
+            hi MyWarningMsg ctermbg=3 ctermfg=0
+            let g:neomake_warning_sign = {
+                \ 'text': '>>',
+                \ 'texthl': 'MyWarningMsg',
+            \ }
+            call neomake#signs#RedefineWarningSign()
+
+            " JavaScript {{
+                let g:neomake_javascript_jshint_maker = {
+                \ 'args': ['--verbose'],
+                \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+                \ }
+                let g:neomake_javascript_enabled_makers = ['eslint']
+            " }}
+
+            " TypeScript {{
+                let g:neomake_typescript_enabled_makers = ['tslint']
+            " }}
+		endif
     " }}
     " Shougo/deoplete.nvim {{
-        let g:deoplete#enable_at_startup = 1
-        set completeopt+=noinsert
+        if 0
+            let g:deoplete#enable_at_startup = 1
+            " set completeopt+=noinsert
 
-        " Set patterns for TypeScript autocompletion
-        " https://github.com/Shougo/deoplete.nvim/blob/17a3aee7b51858193fdfd5f02f7af763af44a465/autoload/deoplete/init.vim#L142
-    " }}
+            " Set patterns for TypeScript autocompletion
+            " https://github.com/Shougo/deoplete.nvim/blob/17a3aee7b51858193fdfd5f02f7af763af44a465/autoload/deoplete/init.vim#L142
+        " }}
+        endif
 " }}
 
 " Mappings {{
@@ -1057,6 +1122,10 @@
         nmap <silent> <Leader>7 7gt
         nmap <silent> <Leader>8 8gt
         nmap <silent> <Leader>9 9gt
+    " }}
+
+    " Macro helpers {{
+        nmap Q @@
     " }}
 
     " Pull the next line onto this line. The default key is J but I have that
@@ -1160,18 +1229,18 @@
     " JavaScript {{
         " NodeJS settings {{
             " Disabled when not working on NodeJS code.
-            if 1
-                au FileType javascript setlocal expandtab " spaces instead of tab - nodejs style http://nodeguide.com/style.html
-                au FileType javascript setlocal list " if we don't have tabs, then we want to see tabs!
-                au FileType javascript setlocal softtabstop=2
-                au FileType javascript setlocal shiftwidth=2
-                au FileType javascript setlocal tabstop=2
-            endif
+            au FileType javascript setlocal expandtab " spaces instead of tab - nodejs style http://nodeguide.com/style.html
+            au FileType javascript setlocal list " if we don't have tabs, then we want to see tabs!
+            au FileType javascript setlocal softtabstop=2
+            au FileType javascript setlocal shiftwidth=2
+            au FileType javascript setlocal tabstop=2
+
+            au FileType vue setlocal expandtab " spaces instead of tab - nodejs style http://nodeguide.com/style.html
+            au FileType vue setlocal list " if we don't have tabs, then we want to see tabs!
+            au FileType vue setlocal softtabstop=2
+            au FileType vue setlocal shiftwidth=2
+            au FileType vue setlocal tabstop=2
         " }}
-
-        " Abbreviations.
-        autocmd FileType javascript abbreviate <buffer> c const
-
 
         " Show menu and previews for completions.
         autocmd FileType javascript setlocal completeopt=preview,menu
@@ -1511,6 +1580,9 @@
             endif
         " }}
     " }}
+
+    " US Keyboard does not have a GBP pound symbol.
+    imap <M-3> £
 " }}
 
 " tmux/iterm integration {{
