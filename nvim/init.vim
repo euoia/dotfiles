@@ -32,7 +32,6 @@
     " Plug 'Shougo/unite.vim'
     " Plug 'tsukkee/unite-tag'
     Plug 'SirVer/ultisnips'
-    " Plug 'Valloric/YouCompleteMe' " Disabled for deoplete.
     Plug 'brookhong/DBGPavim'
     Plug 'chriskempson/base16-vim'
     Plug 'euoia/toggle_maximize.vim'
@@ -77,6 +76,7 @@
     Plug 'cakebaker/scss-syntax.vim'
     Plug 'ap/vim-css-color'
     Plug 'posva/vim-vue'
+    Plug 'prettier/vim-prettier', { 'do': 'npm install' }
 
     " Removed in favour of Neovim alternatives.
     " Plug 'scrooloose/syntastic'
@@ -555,10 +555,8 @@
             endif
         endfunction
 
-        if has("gui_macvim")
-            nnoremap <silent> <D-M> :NERDTreeMirror<cr>
-            nnoremap <silent> <D-N> :NERDTreeToggle<cr>
-        endif
+        nnoremap <silent> <S-D-m> :NERDTreeMirror<cr>
+        nnoremap <silent> <S-D-n> :NERDTreeToggle<cr>
 
         autocmd BufEnter * call CheckNERDTree()
 
@@ -784,26 +782,7 @@
             \   'down':    len(<sid>buflist()) + 2
             \ })<cr>
 
-		let $FZF_DEFAULT_COMMAND="ag -g '' --ignore='public'"
-    " }}
-    " YouCompleteMe {{
-        " YouCompleteMe provides completions through a separate process which
-        " runs asynchronously. It works quite well, but needs to be compiled
-        " and requires python.
-        let g:ycm_key_list_select_completion = ['<Enter>', '<Down>']
-        let g:ycm_semantic_triggers =  {
-            \   'c' : ['->', '.'],
-            \   'objc' : ['->', '.'],
-            \   'ocaml' : ['.', '#'],
-            \   'cpp,objcpp' : ['->', '.', '::'],
-            \   'perl' : ['->'],
-            \   'php' : ['->', '::'],
-            \   'cs,java,javascript,d,python,perl6,scala,vb,elixir,go' : ['.'],
-            \   'vim' : ['re![_a-zA-Z]+[_\w]*\.'],
-            \   'ruby' : ['.', '::'],
-            \   'lua' : ['.', ':'],
-            \   'erlang' : [':'],
-            \ }
+        let $FZF_DEFAULT_COMMAND="ag -g '' --ignore='public'"
     " }}
     " marijnh/tern_for_vim {{
         let g:tern_show_signature_in_pum='on_move'
@@ -814,6 +793,11 @@
         let g:bookmark_auto_save = 1
         let g:bookmark_auto_save_file = '/tmp/my_bookmarks'
         let g:bookmark_auto_save_file = $HOME . '.vim/bookmarks'
+    " }}
+    " {{ prettier/vim-prettier
+        let g:prettier#exec_cmd_async = 1
+        let g:prettier#autoformat = 0
+        autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue PrettierAsync
     " }}
     " Disabled plugins {{
         " VDebug {{
@@ -1029,7 +1013,7 @@
             " TypeScript {{
                 let g:neomake_typescript_enabled_makers = ['tslint']
             " }}
-		endif
+        endif
     " }}
     " Shougo/deoplete.nvim {{
         if 0
@@ -1107,6 +1091,16 @@
         nnoremap <Leader>j <C-w>j
         nnoremap <Leader>k <C-w>k
         nnoremap <Leader>l <C-w>l
+
+        nnoremap <D-h> <C-w>h
+        nnoremap <D-k> <C-w>k
+        nnoremap <D-j> <C-w>j
+        nnoremap <D-l> <C-w>l
+
+        nnoremap <S-D-k> :aboveleft new<cr>
+        nnoremap <S-D-j> :belowright new<cr>
+        nnoremap <S-D-h> :leftabove vnew<cr>
+        nnoremap <S-D-l> :rightbelow vnew<cr>
 
         " Close.
         nnoremap <Leader>q :q<cr>
@@ -1367,10 +1361,10 @@
     " .estlintrc {{
         autocmd BufRead .eslintrc setlocal filetype=json
     " }}
-	" elixir {{
-		au BufNewFile,BufRead *.ex set filetype=elixir
-		au BufNewFile,BufRead *.exs set filetype=elixir
-	" }}
+    " elixir {{
+        au BufNewFile,BufRead *.ex set filetype=elixir
+        au BufNewFile,BufRead *.exs set filetype=elixir
+    " }}
 " }}
 
 " Commands and functions {{
