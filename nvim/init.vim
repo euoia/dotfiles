@@ -71,6 +71,7 @@
     Plug 'jwalton512/vim-blade'
     Plug 'tomlion/vim-solidity'
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    Plug 'junegunn/fzf.vim'
     Plug 'mattn/emmet-vim'
     Plug 'hail2u/vim-css3-syntax'
     Plug 'cakebaker/scss-syntax.vim'
@@ -78,22 +79,28 @@
     Plug 'posva/vim-vue'
     Plug 'prettier/vim-prettier', { 'do': 'npm install' }
 
-    " Removed in favour of Neovim alternatives.
-    " Plug 'scrooloose/syntastic'
+    " Javascript Plugins {{
+        Plug 'heavenshell/vim-jsdoc'
+    " }}
 
-    " Neovim.
-    " Plug 'benekastah/neomake'
+    " Syntax checking and linting {{
+        Plug 'w0rp/ale'
+
+        " Neovim.
+        " Plug 'benekastah/neomake'
+
+        " Non-neovim.
+        " Plug 'scrooloose/syntastic'
+    " }}
 
     " For formatting (especially Javascript using prettier).
     Plug 'sbdchd/neoformat'
 
-    " Syntax checking and linting
-    Plug 'w0rp/ale'
 
     " Typescript plugins {{
-        " Plug 'mhartington/nvim-typescript' " Deoplete source.
-        " Plug 'leafgarland/typescript-vim' " Syntax (disabled for yats.vim).
-        " Plug 'HerringtonDarkholme/yats.vim' " Syntax.
+    Plug 'mhartington/nvim-typescript' " Deoplete source.
+    Plug 'leafgarland/typescript-vim' " Syntax (disabled for yats.vim).
+    Plug 'HerringtonDarkholme/yats.vim' " Syntax.
 
         " Completion and errors (disabled in favour of nvim-typescript)
         " Plug 'Quramy/tsuquyomi', { 'do': 'make -f make_mac.mak' }
@@ -104,6 +111,15 @@
 
     " Elixir plugins {{
         Plug 'elixir-lang/vim-elixir'
+    " }}
+
+    " Django plugins {{
+        Plug 'tweekmonster/django-plus.vim'
+    " }}
+
+    " Go plugins {{
+        Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+        Plug 'zchee/deoplete-go', { 'do': 'make'}
     " }}
 
     call plug#end()
@@ -170,7 +186,7 @@
     " tag you can jump to the definition using C-].
     "
     " Look up the directory hierarchy for a tags file.
-    set tags=./tags,tags,../tags,../../tags,../../../tags,
+    set tags=./.git/tags,./tags,tags,../tags,../../tags,../../../tags,
         \../../../../tags,../../../../../tags
 
     " Which register to use for yanked text.
@@ -521,11 +537,11 @@
     " Neoformat {{
         augroup fmt
             autocmd!
-            autocmd BufWritePre *.js undojoin | Neoformat
-            autocmd BufWritePre *.vue undojoin | Neoformat
+            " autocmd BufWritePre *.js undojoin | Neoformat
+            " autocmd BufWritePre *.vue undojoin | Neoformat
         augroup END
 
-        autocmd FileType javascript set formatprg=prettier\ --stdin\ --single-quote
+        autocmd FileType javascript set formatprg=
         autocmd FileType vue set formatprg=vue-prettier\ --stdin\ --single-quote
         let g:neoformat_try_formatprg = 1
     " }}
@@ -535,7 +551,7 @@
         let NERDTreeShowBookmarks=1
 
         " List of patterns to ignore.
-        let NERDTreeIgnore=['\.vim$', '\~$', '^CVS$']
+        let NERDTreeIgnore=['\.vim$', '\~$', '^CVS$', '__pycache__', '__init__.py']
 
         " Do not clobber my mappings for next and previous tab.
         let NERDTreeMapJumpLastChild='\J'
@@ -976,8 +992,7 @@
     " tern_for_vim {{
         let g:tern_show_argument_hints=1
         let g:tern_show_signature_in_pum=1
-    "
-" }}
+    " }}
     " node-add-require.vim {{
         nmap <leader>r :call NodeAddRequire()<cr> \| call SortTop('const')
     " }}
@@ -1016,14 +1031,15 @@
         endif
     " }}
     " Shougo/deoplete.nvim {{
-        if 0
-            let g:deoplete#enable_at_startup = 1
-            " set completeopt+=noinsert
+		let g:deoplete#enable_at_startup = 1
+		" set completeopt+=noinsert
 
-            " Set patterns for TypeScript autocompletion
-            " https://github.com/Shougo/deoplete.nvim/blob/17a3aee7b51858193fdfd5f02f7af763af44a465/autoload/deoplete/init.vim#L142
-        " }}
-        endif
+		" Set patterns for TypeScript autocompletion
+		" https://github.com/Shougo/deoplete.nvim/blob/17a3aee7b51858193fdfd5f02f7af763af44a465/autoload/deoplete/init.vim#L142
+	" }}
+	" heavenshell/vim-jsdoc {{
+		nmap <silent> <leader> l <Plug>(jsdoc)
+	" }}
 " }}
 
 " Mappings {{
@@ -1182,6 +1198,9 @@
         "au BufRead,BufNewFile *.notes set guifont=Consolas:h12
         au BufRead,BufNewFile *.notes set spell
     " }}
+    " {{ Go
+        au FileType go setlocal completeopt=menu
+    " }}
     " TCL {{
         " TCL files use real tabs
         au FileType tcl setlocal iskeyword=@,48-57,_,192-255
@@ -1242,6 +1261,8 @@
         autocmd FileType javascript setlocal makeprg=mocha\ --reporter=tap
         autocmd FileType javascript setlocal errorformat=%\\s%\\+at\ %m\ (%f:%l:%c)
 
+        autocmd FileType javascript nmap <C-m> :!mocha %<cr>
+
         " Format as paragraph regardless of trailing whitespace.
         autocmd FileType php setlocal formatoptions-=w
 
@@ -1282,6 +1303,11 @@
             hi link jsLabel Special
         " }}
     " }}
+    " Vue {{
+        " Syntax highlighting sometimes doesn't load. Possibly an issue with
+        " vim-vue.
+        let vue_minlines = 500
+    " }}
     " JSON {{
         " npm package.json defaults.
         au FileType json setlocal expandtab
@@ -1310,12 +1336,20 @@
         autocmd FileType vim setlocal list
     " }}
     " Python {{
-        autocmd FileType python setlocal tabstop=2
-        autocmd FileType python setlocal shiftwidth=2
-        autocmd FileType python setlocal softtabstop=2
+        autocmd FileType python setlocal tabstop=4
+        autocmd FileType python setlocal shiftwidth=4
+        autocmd FileType python setlocal softtabstop=4
 
         " Spaces not tabs for Python files.
         autocmd FileType python setlocal expandtab
+
+        let g:ale_fixers = {
+        \   'python': ['autopep8'],
+        \}
+
+        let g:ale_fix_on_save = 1
+        let g:ale_python_pylint_options="--load-plugins pylint_django --errors-only --max-line-length=120"
+        let g:ale_python_flake8_options="--max-line-length=120"
     " }}
     " Markdown {{
         " Spaces not tabs for Markdown files.
@@ -1516,6 +1550,16 @@
             \print_r(" . selectedText . ", true)),
             \\r'error', 'application.'.__CLASS__.'.'.__FUNCTION__);"
     endfunction
+
+    " http://vim.wikia.com/wiki/Diff_the_current_buffer_with_another_file
+    function! SetDiffEnviron()
+        set diff
+        set scrollbind
+        set scrollopt=ver,jump,hor
+        set nowrap
+        set fdm=diff
+    endfunction
+   :command! SetDiffEnviron call SetDiffEnviron()
 " }}
 
 " Fixes and workarounds {{
@@ -1577,6 +1621,7 @@
 
     " US Keyboard does not have a GBP pound symbol.
     imap <M-3> £
+    abbr hash #
 " }}
 
 " tmux/iterm integration {{
@@ -1591,10 +1636,6 @@
         let &t_SI = "\<Esc>]50;CursorShape=1\x7"
         let &t_EI = "\<Esc>]50;CursorShape=0\x7"
     endif
-" }}
-
-" golang {{
-    let $GOPATH="~/.go"
 " }}
 
 " TODOs {{
