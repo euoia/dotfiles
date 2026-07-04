@@ -25,5 +25,16 @@ fi
 picker="$(cat "$picker_file")"
 
 tmux set -g 'status-format[1]' "$picker"          # picker  -> bottom row
+
+# Info row: focused task on the left; oldest waiting window on the right. The
+# session prefix (e.g. "1:") is shown ONLY when that window is in a different
+# session than the one you're viewing — so within a single session it's just
+# the window number.
+attn='#{?#{@attention_target},'
+attn+='#[fg=black#,bg=colour214] ⚑ '
+attn+='#{?#{==:#{@attention_sess},#{session_name}},,#{@attention_sess}:}'
+attn+='#{@attention_idx} #{@attention_name} '
+attn+='#[fg=colour214#,bg=default] #{@attention_msg}'
+attn+='#[fg=colour244]#{@attention_extra}#[default],}'
 tmux set -g 'status-format[0]' \
-  '#[align=left]#[fg=colour109]#{pane_title}#[align=right]#{@attention_line}'   # info -> top row
+  "#[align=left]#[fg=colour109]#{pane_title}#[align=right]${attn}"   # info -> top row
