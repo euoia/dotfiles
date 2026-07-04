@@ -20,7 +20,8 @@ Keys are what you press. `prefix` = `Ctrl-A`. Popup this with **`prefix i`**.
 |-----|--------|
 | `⌘h` `⌘j` `⌘k` `⌘l` | Move between panes (← ↓ ↑ →) |
 | `⇧⌘h` `⇧⌘j` `⇧⌘k` `⇧⌘l` | New split (← ↓ ↑ →) |
-| `⌘z` | Zoom / unzoom pane |
+| `⌘z` | Zoom / unzoom pane (100%) |
+| `⌥m` | Grow pane to 90% height (soft zoom) |
 | `prefix =` / `-` | Resize pane up / down |
 | `prefix q` / `Q` | Kill pane / window |
 
