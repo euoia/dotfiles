@@ -22,6 +22,16 @@ TMUX_BIN="/opt/homebrew/bin/tmux"; [ -x "$TMUX_BIN" ] || TMUX_BIN="tmux"
 
 DIM=$'\033[2m'; OFF=$'\033[0m'; CYAN=$'\033[36m'; GREEN=$'\033[32m'
 
+# Fields are tab-separated, and tab is an IFS *whitespace* character, so `read`
+# collapses runs of them: every field after an EMPTY one shifts left. An empty
+# #{session_last_attached} (a session that has never been attached) silently
+# turned the parked flag into the timestamp — parked sessions rendered as
+# active, dated 20657d. A non-whitespace separator would fix it, except tmux
+# escapes control bytes in format output (\x1f comes out as a literal "\037"),
+# so instead every field that CAN be empty is emitted with a "." sentinel in
+# front, stripped after the read.
+SEP=$'\t'
+
 # "3d" / "4h" / "12m" / "now" since an epoch timestamp.
 ago() {
   local d=$(( $2 - $1 ))
@@ -67,12 +77,12 @@ list() {
   # session_activity — an agent chugging away in a session you haven't opened
   # for a week keeps session_activity at "now", which is the opposite of what
   # this column is for.
-  rows="$("$TMUX_BIN" list-sessions \
-    -F '#{session_name}	#{session_windows}	#{session_last_attached}	#{?@parked,1,0}	#{session_attached}')"
+  rows="$("$TMUX_BIN" list-sessions -F "#{session_name}${SEP}#{session_windows}${SEP}.#{session_last_attached}${SEP}#{?@parked,1,0}${SEP}#{session_attached}")"
 
   group_active=""; group_parked=""
-  while IFS=$'\t' read -r name nwin seen parked attached; do
+  while IFS="$SEP" read -r name nwin seen parked attached; do
     [ -z "$name" ] && continue
+    seen="${seen#.}"                       # drop the empty-field sentinel
     local waiting mark flag line seen_txt
     waiting="$(printf '%s\n' "$bells" | grep -cxF -- "$name" || true)"
     waiting="$(printf '%s' "$waiting" | tr -d ' ')"

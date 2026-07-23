@@ -11,12 +11,15 @@ set -euo pipefail
 dir="${1:-next}"
 cur="$(tmux display-message -p '#{session_name}')"
 
+# Both fields are always non-empty here, so a tab separator is safe (see
+# sessions.sh for why an empty field would shift the columns).
+SEP=$'\t'
 names=""
-while IFS=$'\t' read -r name parked; do
+while IFS="$SEP" read -r name parked; do
   [ -z "$name" ] && continue
   [ "$parked" = "1" ] && continue
   names="${names}${name}"$'\n'
-done < <(tmux list-sessions -F '#{session_name}	#{?@parked,1,0}')
+done < <(tmux list-sessions -F "#{session_name}${SEP}#{?@parked,1,0}")
 
 names="$(printf '%s' "$names" | sed '/^$/d')"
 count="$(printf '%s\n' "$names" | grep -c . || true)"

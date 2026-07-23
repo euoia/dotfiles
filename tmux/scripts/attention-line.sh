@@ -15,8 +15,15 @@ best_ts=""; best_target=""; best_sess=""; best_idx=""; best_name=""; best_msg=""
 
 esc() { printf '%s' "$1" | sed 's/#/##/g'; }   # make text literal in tmux formats
 
-while IFS=$'\t' read -r id sess idx name since msg; do
+# Tab is an IFS *whitespace* character, so `read` collapses runs of it and a
+# window with an empty @claude_since would shift @claude_msg into it (a message
+# read as a timestamp). tmux escapes control bytes in -F output, so the
+# empty-able fields carry a "." sentinel that is stripped after the read.
+SEP=$'\t'
+
+while IFS="$SEP" read -r id sess idx name since msg; do
   [ -z "$id" ] && continue
+  since="${since#.}"; msg="${msg#.}"
   count=$((count + 1))
   ts="${since:-$now}"
   case "$ts" in ''|*[!0-9]*) ts="$now" ;; esac
@@ -29,7 +36,7 @@ while IFS=$'\t' read -r id sess idx name since msg; do
     best_msg="$(esc "${msg:-needs attention}")"
   fi
 done < <(tmux list-windows -a -f '#{==:#{window_bell_flag},1}' \
-          -F '#{window_id}	#{session_name}	#{window_index}	#{window_name}	#{@claude_since}	#{@claude_msg}')
+          -F "#{window_id}${SEP}#{session_name}${SEP}#{window_index}${SEP}#{window_name}${SEP}.#{@claude_since}${SEP}.#{@claude_msg}")
 
 if [ -z "$best_target" ]; then
   for o in target sess idx name msg extra; do tmux set -g -u "@attention_$o" 2>/dev/null || true; done
