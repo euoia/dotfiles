@@ -20,9 +20,18 @@ case "$mode" in
   *) mode="toggle" ;;
 esac
 
+# "The current window" must be resolved from $TMUX_PANE, which tmux sets for
+# run-shell and hooks. Without -t, `display-message -p` answers for whichever
+# client tmux considers current — with two clients attached that can be the
+# OTHER terminal, so you'd park a window you can't even see. Same trap that bit
+# pane-tall.sh.
+here_target=""
+[ -n "${TMUX_PANE:-}" ] && here_target="$TMUX_PANE"
+ask() { tmux display-message -p ${here_target:+-t "$here_target"} "$1" 2>/dev/null || true; }
+
 wins=("$@")
 if [ "${#wins[@]}" -eq 0 ]; then
-  wins=("$(tmux display-message -p '#{window_id}')")
+  wins=("$(ask '#{window_id}')")
 fi
 
 # First free window index in a session (respects base-index).
@@ -49,7 +58,9 @@ touched=""       # sessions to renumber at the end
 note() { case " $touched " in *" $1 "*) ;; *) touched="${touched:+$touched }$1" ;; esac; }
 
 follow=""        # session to follow the window into, if we moved the current one
-current_win="$(tmux display-message -p '#{window_id}' 2>/dev/null || true)"
+land_sess=""; land_idx=""      # where to put the cursor after parking the window
+                               # you were looking at (see the note below)
+current_win="$(ask '#{window_id}')"
 
 parked_count=0; unparked_count=0
 
@@ -65,6 +76,20 @@ for win in "${wins[@]}"; do
 
   if [ "$action" = "park" ]; then
     [ "$src" = "$PARKED" ] && continue
+    # Parking a session's ONLY window destroys that session, which yanks the
+    # client somewhere else entirely — it reads as "parking changed my session".
+    # Park the whole session instead (prefix P), it stays where it is.
+    if [ "$(tmux display-message -p -t "$src:" '#{session_windows}')" -le 1 ]; then
+      tmux display-message "'$src' has only this window — park the session instead (prefix P)"
+      continue
+    fi
+    # Where the cursor should land afterwards: the window that takes this one's
+    # index once the session is renumbered, i.e. the neighbour to the right,
+    # the way closing a tab works.
+    if [ "$win" = "$current_win" ]; then
+      land_sess="$src"
+      land_idx="$(tmux display-message -p -t "$win" '#{window_index}')"
+    fi
     ensure_parked
     tmux set-option -w -t "$win" @parked_from "$src"
     tmux move-window -s "$win" -t "$PARKED:$(free_index "$PARKED")"
@@ -77,7 +102,7 @@ for win in "${wins[@]}"; do
     # session happened to be current. Use show-options -w.
     dest="$(tmux show-options -w -t "$win" -qv @parked_from 2>/dev/null || true)"
     if [ -z "$dest" ] || ! tmux has-session -t "=$dest" 2>/dev/null; then
-      dest="$(tmux display-message -p '#{session_name}')"          # the session you're in
+      dest="$(ask '#{session_name}')"                              # the session you're in
     fi
     if [ "$dest" = "$PARKED" ]; then                               # …unless that's parked too
       dest="$(tmux list-sessions -F '#{session_name}' | grep -vxF -- "$PARKED" | head -1)"
@@ -103,12 +128,18 @@ done
 if [ -n "$follow" ]; then
   tmux switch-client -t "=$follow"
   tmux select-window -t "$current_win"
+elif [ -n "$land_sess" ] && tmux has-session -t "=$land_sess" 2>/dev/null; then
+  # You parked the window you were looking at, so the client has to show
+  # something else. Land on the neighbour rather than wherever tmux chose.
+  tmux select-window -t "$land_sess:$land_idx" 2>/dev/null \
+    || tmux select-window -t "$land_sess:$(tmux list-windows -t "$land_sess:" -F '#{window_index}' | sort -n | tail -1)" 2>/dev/null \
+    || true
 fi
 
 if [ "$parked_count" -gt 0 ] && [ "$unparked_count" -gt 0 ]; then
   tmux display-message "parked $parked_count, un-parked $unparked_count"
 elif [ "$parked_count" -gt 0 ]; then
-  tmux display-message "parked $parked_count window(s) → '$PARKED' (prefix Tab to find them)"
+  tmux display-message "parked $parked_count → session '$PARKED' — prefix Space to get it back"
 elif [ "$unparked_count" -gt 0 ]; then
   tmux display-message "un-parked $unparked_count window(s)"
 fi
