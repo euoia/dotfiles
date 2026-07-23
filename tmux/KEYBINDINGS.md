@@ -13,6 +13,8 @@ Keys are what you press. `prefix` = `Ctrl-A`. Popup this with **`prefix i`**.
 | `prefix ,` | Rename window manually |
 | `prefix g` / `G` | Group + reorder windows by directory |
 | `prefix Space` | Popup switcher (fuzzy, all windows) |
+| `prefix .` | Move this window to another session (picker, or a new session) |
+| `prefix t` | Swap this window with another (type an index) |
 | `prefix W` | Park / un-park this window (move it to the `parked` session) |
 
 In the window switcher: `tab` selects several, `ctrl-p` parks/un-parks them all.

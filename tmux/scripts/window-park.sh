@@ -5,18 +5,30 @@
 # up, without losing the window.
 #
 #   window-park.sh [toggle|park|unpark] [window-id …]
+#   window-park.sh move <session> [window-id …]
 #
 # No ids = the current window. Parking remembers where a window came from
 # (@parked_from), so un-parking puts it back in its own session. Both sessions
 # are renumbered afterwards so ⌥1-9 stays dense — that is the point of the
 # exercise, but it does mean other windows shift.
+#
+# `move` is the same machinery pointed at any session (window-move.sh is the
+# picker for it) — parking is just move-to-"parked" with the bookkeeping.
 set -euo pipefail
 
 PARKED="${TMUX_PARKED_SESSION:-parked}"
 
 mode="${1:-toggle}"
+dest_override=""
 case "$mode" in
   toggle|park|unpark) shift || true ;;
+  move)
+    shift || true
+    dest_override="${1:-}"; shift || true
+    if [ -z "$dest_override" ]; then
+      echo "usage: window-park.sh move <session> [window-id …]" >&2; exit 2
+    fi
+    ;;
   *) mode="toggle" ;;
 esac
 
@@ -70,7 +82,21 @@ land_sess=""; land_idx=""; land_sibling=""   # where to put the cursor after
                                # parking the window you were looking at
 current_win="$(ask '#{window_id}')"
 
-parked_count=0; unparked_count=0
+parked_count=0; unparked_count=0; moved_count=0
+
+# Remember the neighbour to land on when the window being moved out is the one
+# you are looking at. By ID, not index: parking several at once shifts the
+# indices, so "the index this one had" lands you one seat further along for
+# every window that left ahead of it.
+remember_landing() {
+  land_sess="$1"
+  land_idx="$(tmux display-message -p -t "$2" '#{window_index}')"
+  land_sibling="$(tmux list-windows -t "$1:" -F '#{window_id}' | awk -v me="$2" '
+    { id[NR] = $0; if ($0 == me) i = NR }
+    END { if (i == 0) exit
+          if (i < NR) print id[i+1]        # the one to the right…
+          else if (i > 1) print id[i-1] }' )"   # …or to the left, if last
+}
 
 for win in "${wins[@]}"; do
   [ -z "$win" ] && continue
@@ -82,7 +108,32 @@ for win in "${wins[@]}"; do
     if [ "$src" = "$PARKED" ]; then action=unpark; else action=park; fi
   fi
 
-  if [ "$action" = "park" ]; then
+  if [ "$action" = "move" ]; then
+    [ "$src" = "$dest_override" ] && continue
+    if ! tmux has-session -t "=$dest_override" 2>/dev/null; then
+      tmux display-message "no session '$dest_override'"
+      continue
+    fi
+    # Moving a session's LAST window destroys that session. That's a legitimate
+    # way to consolidate, so allow it — but then follow the window, because
+    # otherwise the client is dumped somewhere arbitrary.
+    if [ "$win" = "$current_win" ]; then
+      if [ "$(tmux display-message -p -t "$src:" '#{session_windows}')" -le 1 ]; then
+        follow="$dest_override"
+      else
+        remember_landing "$src" "$win"
+      fi
+    fi
+    # Keep the park bookkeeping honest either way round.
+    if [ "$dest_override" = "$PARKED" ]; then
+      tmux set-option -w -t "$win" @parked_from "$src"
+    elif [ "$src" = "$PARKED" ]; then
+      tmux set-option -w -t "$win" -u @parked_from 2>/dev/null || true
+    fi
+    tmux move-window -s "$win" -t "$dest_override:$(free_index "$dest_override")"
+    note "$src"; note "$dest_override"
+    moved_count=$(( moved_count + 1 ))
+  elif [ "$action" = "park" ]; then
     [ "$src" = "$PARKED" ] && continue
     # Parking a session's ONLY window destroys that session, which yanks the
     # client somewhere else entirely — it reads as "parking changed my session".
@@ -91,19 +142,8 @@ for win in "${wins[@]}"; do
       tmux display-message "'$src' has only this window — park the session instead (prefix P)"
       continue
     fi
-    # Where the cursor should land afterwards: the neighbour, the way closing a
-    # tab works. Remember it by window ID rather than by index — parking several
-    # windows at once shifts the indices, so "the index this one had" would land
-    # you one seat further along for every window parked ahead of it.
-    if [ "$win" = "$current_win" ]; then
-      land_sess="$src"
-      land_idx="$(tmux display-message -p -t "$win" '#{window_index}')"
-      land_sibling="$(tmux list-windows -t "$src:" -F '#{window_id}' | awk -v me="$win" '
-        { id[NR] = $0; if ($0 == me) i = NR }
-        END { if (i == 0) exit
-              if (i < NR) print id[i+1]        # the one to the right…
-              else if (i > 1) print id[i-1] }' )"   # …or to the left, if last
-    fi
+    # Land on the neighbour afterwards, the way closing a tab works.
+    [ "$win" = "$current_win" ] && remember_landing "$src" "$win"
     ensure_parked
     tmux set-option -w -t "$win" @parked_from "$src"
     tmux move-window -s "$win" -t "$PARKED:$(free_index "$PARKED")"
@@ -162,7 +202,9 @@ elif [ -n "$land_sess" ] && tmux has-session -t "=$land_sess" 2>/dev/null; then
     || true
 fi
 
-if [ "$parked_count" -gt 0 ] && [ "$unparked_count" -gt 0 ]; then
+if [ "$moved_count" -gt 0 ]; then
+  tmux display-message "moved $moved_count → session '$dest_override'"
+elif [ "$parked_count" -gt 0 ] && [ "$unparked_count" -gt 0 ]; then
   tmux display-message "parked $parked_count, un-parked $unparked_count"
 elif [ "$parked_count" -gt 0 ]; then
   tmux display-message "parked $parked_count → session '$PARKED' — prefix Space to get it back"
