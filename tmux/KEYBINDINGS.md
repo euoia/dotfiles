@@ -13,7 +13,7 @@ Keys are what you press. `prefix` = `Ctrl-A`. Popup this with **`prefix i`**.
 | `prefix ,` | Rename window manually |
 | `prefix g` / `G` | Group + reorder windows by directory |
 | `prefix Space` | Popup switcher (fuzzy, all windows) |
-| `prefix p` | Park / un-park this window (move it to the `parked` session) |
+| `prefix W` | Park / un-park this window (move it to the `parked` session) |
 
 In the window switcher: `tab` selects several, `ctrl-p` parks/un-parks them all.
 Parking frees a slot in a full session and renumbers what's left, so `⌥1`–`9`
@@ -93,3 +93,9 @@ tmux receives the bytes. **Recipe:** `0x01` (= Ctrl-A prefix) + the key's hex.
 | `prefix ‹key›` (any) | `0x01` + key's hex (e.g. reorder `0x01 0x67`) |
 
 > `⌥⏎` must stay **unmapped** so it inserts a newline in Claude prompts.
+
+> **Before binding a new `prefix ‹key›`, check this table first.** The keys
+> above are already spoken for by iTerm2 mappings, and a tmux binding on one of
+> them silently hijacks the shortcut: binding `prefix p` broke `⌥h`
+> (previous-window), which sends `0x01 0x70`. Claimed: `p` `n` `c` `g` `A`
+> `h j k l` `H J K L` and the digits.
