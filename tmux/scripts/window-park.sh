@@ -54,12 +54,20 @@ ensure_parked() {
   fi
 }
 
-touched=""       # sessions to renumber at the end
-note() { case " $touched " in *" $1 "*) ;; *) touched="${touched:+$touched }$1" ;; esac; }
+# Sessions to renumber at the end. Newline-delimited, not space: session names
+# may contain spaces, and `for s in $touched` would split one into two names
+# that match nothing, silently skipping the renumber.
+touched=""
+note() {                       # no $( ) here — it would strip the trailing
+  case $'\n'"$touched" in      # newline and the last entry would never match
+    *$'\n'"$1"$'\n'*) ;;
+    *) touched="${touched}$1"$'\n' ;;
+  esac
+}
 
 follow=""        # session to follow the window into, if we moved the current one
-land_sess=""; land_idx=""      # where to put the cursor after parking the window
-                               # you were looking at (see the note below)
+land_sess=""; land_idx=""; land_sibling=""   # where to put the cursor after
+                               # parking the window you were looking at
 current_win="$(ask '#{window_id}')"
 
 parked_count=0; unparked_count=0
@@ -83,12 +91,18 @@ for win in "${wins[@]}"; do
       tmux display-message "'$src' has only this window — park the session instead (prefix P)"
       continue
     fi
-    # Where the cursor should land afterwards: the window that takes this one's
-    # index once the session is renumbered, i.e. the neighbour to the right,
-    # the way closing a tab works.
+    # Where the cursor should land afterwards: the neighbour, the way closing a
+    # tab works. Remember it by window ID rather than by index — parking several
+    # windows at once shifts the indices, so "the index this one had" would land
+    # you one seat further along for every window parked ahead of it.
     if [ "$win" = "$current_win" ]; then
       land_sess="$src"
       land_idx="$(tmux display-message -p -t "$win" '#{window_index}')"
+      land_sibling="$(tmux list-windows -t "$src:" -F '#{window_id}' | awk -v me="$win" '
+        { id[NR] = $0; if ($0 == me) i = NR }
+        END { if (i == 0) exit
+              if (i < NR) print id[i+1]        # the one to the right…
+              else if (i > 1) print id[i-1] }' )"   # …or to the left, if last
     fi
     ensure_parked
     tmux set-option -w -t "$win" @parked_from "$src"
@@ -105,7 +119,10 @@ for win in "${wins[@]}"; do
       dest="$(ask '#{session_name}')"                              # the session you're in
     fi
     if [ "$dest" = "$PARKED" ]; then                               # …unless that's parked too
-      dest="$(tmux list-sessions -F '#{session_name}' | grep -vxF -- "$PARKED" | head -1)"
+      # `|| true`: with pipefail, a grep that matches nothing (parked is the
+      # only session) fails the substitution, and under set -e that kills the
+      # whole run instead of just skipping this window.
+      dest="$(tmux list-sessions -F '#{session_name}' | grep -vxF -- "$PARKED" | head -1 || true)"
     fi
     [ -z "$dest" ] && continue
     tmux move-window -s "$win" -t "$dest:$(free_index "$dest")"
@@ -121,17 +138,26 @@ if [ -n "$placeholder" ]; then
   tmux kill-window -t "$placeholder" 2>/dev/null || true
 fi
 
-for s in $touched; do
+while IFS= read -r s; do
+  [ -z "$s" ] && continue
   tmux has-session -t "=$s" 2>/dev/null && tmux move-window -r -t "$s:" 2>/dev/null || true
-done
+done <<< "$touched"
 
 if [ -n "$follow" ]; then
   tmux switch-client -t "=$follow"
   tmux select-window -t "$current_win"
 elif [ -n "$land_sess" ] && tmux has-session -t "=$land_sess" 2>/dev/null; then
   # You parked the window you were looking at, so the client has to show
-  # something else. Land on the neighbour rather than wherever tmux chose.
-  tmux select-window -t "$land_sess:$land_idx" 2>/dev/null \
+  # something else. Land on its neighbour rather than wherever tmux chose:
+  # by ID if that neighbour is still in this session (it may have been parked
+  # in the same sweep — selecting it there would leave this session untouched),
+  # else by the index it vacated.
+  if [ -n "$land_sibling" ] \
+     && [ "$(tmux display-message -p -t "$land_sibling" '#{session_name}' 2>/dev/null || true)" != "$land_sess" ]; then
+    land_sibling=""
+  fi
+  tmux select-window -t "${land_sibling:-:none:}" 2>/dev/null \
+    || tmux select-window -t "$land_sess:$land_idx" 2>/dev/null \
     || tmux select-window -t "$land_sess:$(tmux list-windows -t "$land_sess:" -F '#{window_index}' | sort -n | tail -1)" 2>/dev/null \
     || true
 fi
