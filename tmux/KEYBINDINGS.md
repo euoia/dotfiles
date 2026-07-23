@@ -14,6 +14,22 @@ Keys are what you press. `prefix` = `Ctrl-A`. Popup this with **`prefix i`**.
 | `prefix g` / `G` | Group + reorder windows by directory |
 | `prefix Space` | Popup switcher (fuzzy, all windows) |
 
+## Sessions
+
+Each session is **active** or **parked** — a label only, nothing is hidden or
+killed. Parked sessions drop to their own group in the picker and are skipped
+by `prefix (` / `)`.
+
+| Key | Effect |
+|-----|--------|
+| `prefix Tab` | Session picker (grouped active / parked) |
+| `prefix )` / `(` | Next / previous **active** session |
+| `prefix P` | Park / un-park this session |
+| `prefix R` | Auto-name this session after its projects |
+| `prefix $` | Rename session manually |
+
+In the picker: `enter` switch · `ctrl-p` park/unpark · `ctrl-r` auto-name.
+
 ## Panes
 
 | Key | Effect |
@@ -68,6 +84,7 @@ tmux receives the bytes. **Recipe:** `0x01` (= Ctrl-A prefix) + the key's hex.
 | `⌥0` (jump waiting) | `0x00` |
 | `⌥a` (autoname) | `0x01 0x41` |
 | `⌘⏎` (submit + jump) | `0x0d 0x00` |
+| `prefix Tab` (sessions) | `0x01 0x09` |
 | `prefix ‹key›` (any) | `0x01` + key's hex (e.g. reorder `0x01 0x67`) |
 
 > `⌥⏎` must stay **unmapped** so it inserts a newline in Claude prompts.

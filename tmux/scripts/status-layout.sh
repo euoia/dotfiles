@@ -36,5 +36,9 @@ attn+='#{?#{==:#{@attention_sess},#{session_name}},,#{@attention_sess}:}'
 attn+='#{@attention_idx} #{@attention_name} '
 attn+='#[fg=colour214#,bg=default] #{@attention_msg}'
 attn+='#[fg=colour244]#{@attention_extra}#[default],}'
+# Left of the task: which session you're in (status-left was dropped from the
+# picker row) and a ⏸ when that session is parked.
+sess='#[fg=colour244]#{session_name}#{?@parked, ⏸,}#[fg=colour109] '
+
 tmux set -g 'status-format[0]' \
-  "#[align=left]#[fg=colour109]#{pane_title}#[align=right]${attn}"   # info -> top row
+  "#[align=left]${sess}#{pane_title}#[align=right]${attn}"           # info -> top row
