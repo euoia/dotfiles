@@ -35,10 +35,17 @@ wpath="$(printf '%s' "$info" | cut -f3)"
 rows="$("$here/sessions.sh" --list | awk -F'\t' -v me="$src" '$1 != me')"
 rows="${rows}"$'\n'"$(printf '%s\t%s+ new session%s' "$NEW_ROW_ID" "$GREEN" "$OFF")"
 
+# The preview must do nothing on a group-header row: its id field is empty, and
+# `list-windows -t :` quietly falls back to the CURRENT session, so the header
+# rows previewed the windows of the session you're moving out of.
+# --header-lines=1 pins sessions.sh's leading "active" line, which also puts the
+# cursor on a real session from the start.
+preview="[ -n {1} ] && $TMUX_BIN list-windows -t {1}: -F '#{?#{==:#{window_bell_flag},1},⚑ ,  }#{window_index}: #{window_name}   #{pane_title}' 2>/dev/null | cut -c1-200"
+
 sel="$(printf '%s\n' "$rows" | "$FZF" --ansi --delimiter=$'\t' --with-nth=2 \
-  --no-sort --reverse --prompt="move '${wname}' to> " \
+  --no-sort --reverse --prompt="move '${wname}' to> " --header-lines=1 \
   --header="enter: move   esc: cancel" \
-  --preview="$TMUX_BIN list-windows -t {1}: -F '#{?#{==:#{window_bell_flag},1},⚑ ,  }#{window_index}: #{window_name}   #{pane_title}' 2>/dev/null | cut -c1-200" \
+  --preview="$preview" \
   --preview-window='down,8,wrap')" || exit 0
 
 dest="$(printf '%s' "$sel" | cut -f1)"

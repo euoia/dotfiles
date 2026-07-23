@@ -111,8 +111,13 @@ list() {
     fi
   done <<< "$rows"
 
-  # Group headers are rows with an EMPTY id field, so selecting one is a no-op.
-  [ -n "$group_active" ] && { printf '\t%s── active ─────%s\n' "$DIM" "$OFF"; printf '%s' "$group_active"; }
+  # The "active" line is ALWAYS first, even when that group is empty, because
+  # the picker pins it with --header-lines=1: that keeps it out of the match
+  # list and starts the cursor on a real session rather than on a header.
+  # "parked" stays an ordinary row — group headers carry an EMPTY id field, so
+  # selecting one is a no-op.
+  printf '\t%s── active ─────%s\n' "$DIM" "$OFF"
+  printf '%s' "$group_active"
   [ -n "$group_parked" ] && { printf '\t%s── parked ─────%s\n' "$DIM" "$OFF"; printf '%s' "$group_parked"; }
   return 0
 }
@@ -125,10 +130,13 @@ case "${1:-}" in
   rename) [ -n "${2:-}" ] && "$here/session-autoname.sh" "$2" >/dev/null 2>&1 || true; exit 0 ;;
 esac
 
-preview="$TMUX_BIN list-windows -t {1}: -F '#{?#{==:#{window_bell_flag},1},⚑ ,  }#{window_index}: #{window_name}   #{pane_title}' 2>/dev/null | cut -c1-200"
+# `[ -n {1} ]` guard: a group-header row has an empty id, and `list-windows -t :`
+# quietly falls back to the CURRENT session, so headers previewed the windows of
+# whatever session you were in.
+preview="[ -n {1} ] && $TMUX_BIN list-windows -t {1}: -F '#{?#{==:#{window_bell_flag},1},⚑ ,  }#{window_index}: #{window_name}   #{pane_title}' 2>/dev/null | cut -c1-200"
 
 sel="$(list | "$FZF" --ansi --delimiter=$'\t' --with-nth=2 \
-  --no-sort --reverse --prompt='session> ' \
+  --no-sort --reverse --prompt='session> ' --header-lines=1 \
   --header='enter: switch   ctrl-p: park/unpark   ctrl-r: auto-name' \
   --preview="$preview" --preview-window='down,10,wrap' \
   --bind "ctrl-p:execute-silent('$self' park {1})+reload('$self' --list)" \
