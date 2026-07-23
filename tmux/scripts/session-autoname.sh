@@ -22,6 +22,8 @@ while read -r path; do
   [ -z "$label" ] && continue
   case " $labels " in *" $label "*) continue ;; esac
   labels="${labels:+$labels }$label"
+# Trailing colon: list-panes resolves -t as a PANE target, so a bare "2" would
+# mean window 2 of the CURRENT session, not the session called "2".
 done < <(tmux list-panes -s -t "$sess:" -F '#{pane_current_path}' \
            | sort | uniq -c | sort -rn | sed -E 's/^ *[0-9]+ //')
 
@@ -39,12 +41,11 @@ fi
 # Uniquify against the other sessions.
 existing="$(tmux list-sessions -F '#{session_name}')"
 candidate="$name"; n=1
-while printf '%s\n' "$existing" | grep -qxF "$candidate" \
+while printf '%s\n' "$existing" | grep -qxF -- "$candidate" \
       && [ "$candidate" != "$sess" ]; do
   n=$((n + 1)); candidate="$name-$n"
 done
 
 if [ "$candidate" = "$sess" ]; then exit 0; fi   # already named correctly
-# Trailing colon: a bare "2" would be read as window 2 of the CURRENT session.
 tmux rename-session -t "$sess:" "$candidate"
 tmux display-message "session renamed to '$candidate'"

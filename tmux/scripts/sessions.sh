@@ -48,8 +48,8 @@ labels_for() {
     [ -z "$label" ] && continue
     case " $out " in *" $label "*) continue ;; esac
     out="${out:+$out }$label"
-  # NB the trailing colon — a bare "1" would be read as *window* 1 of the
-  # current session, not the session called "1".
+  # NB the trailing colon — list-panes resolves -t as a PANE target, so a bare
+  # "1" means window 1 of the CURRENT session, not the session called "1".
   done < <("$TMUX_BIN" list-panes -s -t "$1:" -F '#{pane_current_path}' 2>/dev/null \
              | sort | uniq -c | sort -rn | sed -E 's/^ *[0-9]+ //')
   printf '%s' "$out" | awk '{ n = (NF > 3 ? 3 : NF); s = "";
@@ -63,20 +63,35 @@ list() {
   cur="$("$TMUX_BIN" display-message -p '#{session_name}' 2>/dev/null || true)"
   bells="$("$TMUX_BIN" list-windows -a -f '#{==:#{window_bell_flag},1}' \
              -F '#{session_name}' 2>/dev/null || true)"
+  # Last column is "when were you last IN here" (last_attached), NOT
+  # session_activity — an agent chugging away in a session you haven't opened
+  # for a week keeps session_activity at "now", which is the opposite of what
+  # this column is for.
   rows="$("$TMUX_BIN" list-sessions \
-    -F '#{session_name}	#{session_windows}	#{session_activity}	#{?@parked,1,0}')"
+    -F '#{session_name}	#{session_windows}	#{session_last_attached}	#{?@parked,1,0}	#{session_attached}')"
 
   group_active=""; group_parked=""
-  while IFS=$'\t' read -r name nwin act parked; do
+  while IFS=$'\t' read -r name nwin seen parked attached; do
     [ -z "$name" ] && continue
-    local waiting mark flag line
-    waiting="$(printf '%s\n' "$bells" | grep -cxF "$name" || true)"
+    local waiting mark flag line seen_txt
+    waiting="$(printf '%s\n' "$bells" | grep -cxF -- "$name" || true)"
     waiting="$(printf '%s' "$waiting" | tr -d ' ')"
     [ "$name" = "$cur" ] && mark="▸" || mark=" "
-    [ "$waiting" -gt 0 ] 2>/dev/null && flag="$(printf '⚑%-2s' "$waiting")" || flag="   "
+    # printf -v, not $(...) — command substitution would strip the trailing pad
+    # space and shift the last column by one for any session with a flag.
+    if [ "$waiting" -gt 0 ] 2>/dev/null; then printf -v flag '⚑%-2s' "$waiting"
+    else flag="   "
+    fi
+    # last_attached is 0 for a session that has never been attached (created
+    # detached by a script or restored by resurrect) — without this it renders
+    # as "20657d", i.e. epoch.
+    if [ "${attached:-0}" -gt 0 ] 2>/dev/null;  then seen_txt="open"
+    elif [ -z "$seen" ] || [ "$seen" = "0" ];   then seen_txt="—"
+    else                                             seen_txt="$(ago "$seen" "$now")"
+    fi
     line="$(printf '%s %-14s %-32s %2sw %s %4s' \
       "$mark" "$(clip "$name" 14)" "$(clip "$(labels_for "$name")" 32)" \
-      "$nwin" "$flag" "$(ago "$act" "$now")")"
+      "$nwin" "$flag" "$seen_txt")"
     if [ "$parked" = "1" ]; then
       group_parked="${group_parked}$(printf '%s\t%s%s%s\n' "$name" "$DIM" "$line" "$OFF")"$'\n'
     elif [ "$name" = "$cur" ]; then
@@ -86,8 +101,7 @@ list() {
     fi
   done <<< "$rows"
 
-  # Colour the waiting flag wherever it appears, then group with dim headers.
-  # (Header rows carry an empty id field and are ignored on Enter.)
+  # Group headers are rows with an EMPTY id field, so selecting one is a no-op.
   [ -n "$group_active" ] && { printf '\t%s── active ─────%s\n' "$DIM" "$OFF"; printf '%s' "$group_active"; }
   [ -n "$group_parked" ] && { printf '\t%s── parked ─────%s\n' "$DIM" "$OFF"; printf '%s' "$group_parked"; }
   return 0

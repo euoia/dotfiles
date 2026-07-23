@@ -27,7 +27,7 @@ if [ -z "$names" ] || [ "$count" -lt 1 ]; then
 fi
 
 # Index of the current session within the active ring (0 if it isn't in it).
-idx="$(printf '%s\n' "$names" | grep -nxF "$cur" | head -1 | cut -d: -f1 || true)"
+idx="$(printf '%s\n' "$names" | grep -nxF -- "$cur" | head -1 | cut -d: -f1 || true)"
 if [ -z "$idx" ]; then
   target="$(printf '%s\n' "$names" | head -1)"
 else

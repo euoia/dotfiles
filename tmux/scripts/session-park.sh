@@ -10,10 +10,12 @@ set -euo pipefail
 
 mode="${1:-toggle}"
 sess="${2:-$(tmux display-message -p '#{session_name}')}"
-# NB the trailing colon on every target. `set-option -t 2` resolves "2" as
-# *window* 2 of the current session and silently sets the option on the WRONG
-# session; "2:" forces a session lookup. ("=2" is no good either — set-option
-# rejects it and show-options quietly returns nothing for it.)
+# NB the trailing colon on every target. set-option/show-options resolve -t as a
+# PANE target (an option's scope isn't known until it's looked up), so a bare
+# "2" means *window 2 of the current session* and the option silently lands on
+# the WRONG session. "2:" forces a session lookup. "=2" is no good either —
+# set-option rejects it outright and show-options quietly returns nothing (rc 0),
+# which would read as "not parked" forever.
 
 is_parked() {
   [ "$(tmux show-options -t "$sess:" -qv @parked 2>/dev/null || true)" = "1" ]
